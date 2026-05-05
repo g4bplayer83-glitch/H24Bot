@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Bot Pro</title>
+    <style>
+        :root {
+            --discord-blue: #5865F2;
+            --discord-hover: #4752C4;
+            --bg-dark: #1e1f22;
+            --bg-card: #2b2d31;
+            --text-main: #f2f3f5;
+            --text-muted: #b5bac1;
+            --success: #23a559;
+            --danger: #da373c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .status {
+            display: inline-block;
+            background: #111214;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .status-dot {
+            color: var(--success);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 18px;
+            border-bottom: 1px solid #3f4147;
+            padding-bottom: 10px;
+        }
+
+        .btn {
+            background-color: var(--discord-blue);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover { background-color: var(--discord-hover); }
+        .btn.danger { background-color: var(--danger); }
+        .btn.danger:hover { background-color: #a1282c; }
+        .btn.success { background-color: var(--success); }
+        .btn.success:hover { background-color: #1a7c43; }
+
+        input[type="text"] {
+            width: calc(100% - 24px);
+            padding: 12px;
+            border-radius: 6px;
+            border: none;
+            background: #1e1f22;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        #notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--success);
+            padding: 15px 20px;
+            border-radius: 8px;
+            display: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <div class="header">
+            <h1>🎛️ Centre de Contrôle du Bot</h1>
+            <div class="status"><span class="status-dot">🟢</span> En Ligne & Connecté</div>
+        </div>
+
+        <div class="grid">
+            <!-- Contrôle Vocal -->
+            <div class="card">
+                <h2>🎧 Contrôle Vocal</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Gérer la présence du bot dans le salon vocal.</p>
+                <button class="btn success" onclick="action('/api/voice/join')">Entrer dans le vocal</button>
+                <button class="btn danger" onclick="action('/api/voice/leave')">Quitter le vocal</button>
+            </div>
+
+            <!-- Contrôle Chat & Auto-réponses -->
+            <div class="card">
+                <h2>💬 Chat & Système</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Activer/Désactiver les 50 réponses auto.</p>
+                <button class="btn" onclick="action('/api/auto/toggle')">Activer / Désactiver les réponses auto</button>
+            </div>
+
+            <!-- Message Personnalisé -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <h2>📢 Envoyer une annonce</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Faire parler le bot directement depuis ici.</p>
+                <input type="text" id="messageText" placeholder="Écris ton message ici...">
+                <button class="btn" onclick="sendMessage()">Envoyer le message</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification">Action réussie ! ✅</div>
+
+    <script>
+        // Fonction pour envoyer des requêtes silencieuses au bot (sans recharger la page)
+        async function action(endpoint) {
+            try {
+                let res = await fetch(endpoint);
+                let data = await res.json();
+                showNotification(data.message);
+            } catch (e) {
+                showNotification("Erreur lors de l'action ❌");
+            }
+        }
+
+        async function sendMessage() {
+            const text = document.getElementById('messageText').value;
+            if (!text) return;
+            
+            try {
+                let res = await fetch('/api/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                let data = await res.json();
+                showNotification(data.message);
+                document.getElementById('messageText').value = ''; // Vide la case
+            } catch (e) {
+                showNotification("Erreur d'envoi ❌");
+            }
+        }
+
+        function showNotification(msg) {
+            const notif = document.getElementById('notification');
+            notif.innerText = msg;
+            notif.style.display = 'block';
+            setTimeout(() => { notif.style.display = 'none'; }, 3000);
+        }
+    </script>
+</body>
+</html>
