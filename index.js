@@ -13,8 +13,8 @@ const client = new Client({
     ]
 });
 
-const GUILD_ID = 'ID_DE_TON_SERVEUR'; // Remets ton ID
-const VOICE_CHANNEL_ID = 'ID_DE_TON_SALON_VOCAL'; // Remets ton ID
+const GUILD_ID = '1407482110268149820'; // Remets ton ID
+const VOICE_CHANNEL_ID = '1439682653895917588'; // Remets ton ID
 
 // Variable pour activer/désactiver les réponses auto en direct
 let autoResponsesEnabled = true;
