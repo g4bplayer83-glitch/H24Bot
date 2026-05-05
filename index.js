@@ -14,8 +14,8 @@ const client = new Client({
 
 // Remplace ces IDs par ceux de ton serveur
 // (Sur Discord : Paramètres > Avancés > Mode Développeur activé, puis clic droit sur le salon/serveur pour copier l'ID)
-const GUILD_ID = 'ID_DE_TON_SERVEUR';
-const VOICE_CHANNEL_ID = 'ID_DE_TON_SALON_VOCAL';
+const GUILD_ID = '1407482110268149820';
+const VOICE_CHANNEL_ID = '1439682653895917588';
 
 client.on('ready', () => {
     console.log(`🚀 Connecté en tant que ${client.user.tag}!`);
