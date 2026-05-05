@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits, Events } = require('discord.js');
 const { joinVoiceChannel, getVoiceConnection } = require('@discordjs/voice');
 const express = require('express');
 const path = require('path');
@@ -13,10 +13,9 @@ const client = new Client({
     ]
 });
 
-const GUILD_ID = '1407482110268149820'; // Remets ton ID
-const VOICE_CHANNEL_ID = '1439682653895917588'; // Remets ton ID
+const GUILD_ID = 'TON_VRAI_ID_DE_SERVEUR'; // ⚠️ Remplacer ici
+const VOICE_CHANNEL_ID = 'TON_VRAI_ID_DE_SALON_VOCAL'; // ⚠️ Remplacer ici
 
-// Variable pour activer/désactiver les réponses auto en direct
 let autoResponsesEnabled = true;
 
 // Système anti-crash
@@ -28,13 +27,11 @@ const reponsesAuto = {
     "bonjour": "Bonjour ! J'espère que tu passes une bonne journée.",
     "coucou": "Coucou ! 👋",
     "ping": "Pong ! 🏓"
-    // (Ajoute tes autres réponses "safe" ici)
+    // Ajoute tes autres réponses ici
 };
 
 client.on('messageCreate', (message) => {
     if (message.author.bot) return;
-    
-    // Si l'option a été désactivée depuis le dashboard, on ne répond pas
     if (!autoResponsesEnabled) return;
 
     const texte = message.content.toLowerCase();
@@ -43,22 +40,29 @@ client.on('messageCreate', (message) => {
     }
 });
 
-client.on('ready', () => {
+// Correction de l'événement de démarrage
+client.once(Events.ClientReady, async () => {
     console.log(`🚀 Connecté en tant que ${client.user.tag}!`);
-    rejoindreVocal(); // Appelle la fonction pour rejoindre au démarrage
+    await rejoindreVocal(); 
 });
 
-function rejoindreVocal() {
-    const guild = client.guilds.cache.get(GUILD_ID);
-    if (guild) {
-        joinVoiceChannel({
-            channelId: VOICE_CHANNEL_ID,
-            guildId: guild.id,
-            adapterCreator: guild.voiceAdapterCreator,
-            selfDeaf: false,
-            selfMute: false
-        });
-        console.log('🎧 Vocal rejoint !');
+// Fonction asynchrone pour être sûr de trouver le serveur
+async function rejoindreVocal() {
+    try {
+        // On force le bot à chercher le serveur au lieu d'utiliser le cache
+        const guild = await client.guilds.fetch(GUILD_ID);
+        if (guild) {
+            joinVoiceChannel({
+                channelId: VOICE_CHANNEL_ID,
+                guildId: guild.id,
+                adapterCreator: guild.voiceAdapterCreator,
+                selfDeaf: false,
+                selfMute: false
+            });
+            console.log('🎧 Vocal rejoint avec succès !');
+        }
+    } catch (error) {
+        console.log("❌ Impossible de rejoindre le vocal. Les IDs sont-ils corrects ?");
     }
 }
 
@@ -68,21 +72,25 @@ function rejoindreVocal() {
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Permet de lire le JSON envoyé par le dashboard
 app.use(express.json());
 
-// Sert le dossier "public" qui contient ton index.html
+// Dit à express où chercher le dossier public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- ROUTES API POUR LE DASHBOARD ---
+// Route de secours si le dossier public n'est pas trouvé
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
+        if (err) {
+            res.status(404).send("<h2>Erreur d'affichage</h2><p>Le fichier n'a pas été trouvé. As-tu bien créé un dossier nommé exactement <b>public</b> sur ton GitHub, et as-tu mis <b>index.html</b> dedans ?</p>");
+        }
+    });
+});
 
-// 1. Rejoindre le vocal
 app.get('/api/voice/join', (req, res) => {
     rejoindreVocal();
     res.json({ message: "Le bot a rejoint le vocal ! 🎧" });
 });
 
-// 2. Quitter le vocal
 app.get('/api/voice/leave', (req, res) => {
     const connection = getVoiceConnection(GUILD_ID);
     if (connection) {
@@ -93,20 +101,17 @@ app.get('/api/voice/leave', (req, res) => {
     }
 });
 
-// 3. Activer/Désactiver les réponses automatiques
 app.get('/api/auto/toggle', (req, res) => {
     autoResponsesEnabled = !autoResponsesEnabled;
     const etat = autoResponsesEnabled ? "Activées" : "Désactivées";
     res.json({ message: `Réponses auto : ${etat} 🤖` });
 });
 
-// 4. Envoyer un message personnalisé
 app.post('/api/send', (req, res) => {
     const texte = req.body.message;
     const guild = client.guilds.cache.get(GUILD_ID);
     
     if (guild && texte) {
-        // Cherche le premier salon textuel disponible pour parler
         const channel = guild.channels.cache.find(c => c.isTextBased());
         if (channel) {
             channel.send(texte);
