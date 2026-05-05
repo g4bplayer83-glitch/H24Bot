@@ -6,15 +6,19 @@ const multer = require('multer');
 const fs = require('fs');
 require('dotenv').config();
 
+// Sécurité : on crée le dossier sounds s'il n'existe pas pour éviter les crashs d'upload
+if (!fs.existsSync('./sounds')) {
+    fs.mkdirSync('./sounds');
+}
+
 const client = new Client({
     intents: [ GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates ]
 });
 
-const GUILD_ID = 'TON_VRAI_ID_DE_SERVEUR'; 
-const VOICE_CHANNEL_ID = 'TON_VRAI_ID_DE_SALON_VOCAL';
+const GUILD_ID = '1407482110268149820'; 
+const VOICE_CHANNEL_ID = '1439682653895917588';
 
 let autoResponsesEnabled = true;
-let sseClients = [];
 let audioPlayer = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Pause } });
 
 // ==========================================
@@ -35,33 +39,35 @@ const slashCommands = [
 
 client.once(Events.ClientReady, async () => {
     console.log(`🚀 Connecté en tant que ${client.user.tag}!`);
-    // Création des commandes Slash
     try {
         await client.application.commands.set(slashCommands, GUILD_ID);
-        console.log('✅ Les 10 commandes Slash ont été créées !');
+        console.log('✅ Les 10 commandes Slash sont prêtes !');
     } catch (e) { console.error("Erreur commandes Slash :", e); }
 });
 
 client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return;
-
-    if (interaction.commandName === 'ping') await interaction.reply(`🏓 Pong! Latence: ${client.ws.ping}ms`);
-    if (interaction.commandName === 'say') await interaction.reply(interaction.options.getString('texte'));
-    if (interaction.commandName === 'pileouface') await interaction.reply(Math.random() < 0.5 ? '🪙 Pile !' : '🪙 Face !');
-    if (interaction.commandName === 'des') await interaction.reply(`🎲 Tu as fait un ${Math.floor(Math.random() * 6) + 1} !`);
-    if (interaction.commandName === 'blague') await interaction.reply("Que fait une fraise sur un cheval ? ... Tagada tagada ! 🍓");
-    if (interaction.commandName === 'serveur') await interaction.reply(`Serveur: **${interaction.guild.name}**\nMembres: ${interaction.guild.memberCount}`);
-    if (interaction.commandName === 'botinfo') await interaction.reply("Je suis un bot contrôlé par une interface web ultra pro ! 😎");
-    if (interaction.commandName === 'help') await interaction.reply("Voici mes commandes : /ping, /say, /avatar, /serveur, /pileouface, /des, /blague, /clear, /botinfo");
-    if (interaction.commandName === 'avatar') {
-        const user = interaction.options.getUser('membre') || interaction.user;
-        await interaction.reply(user.displayAvatarURL({ dynamic: true, size: 512 }));
-    }
-    if (interaction.commandName === 'clear') {
-        if (!interaction.member.permissions.has('ManageMessages')) return interaction.reply("Tu n'as pas la permission !");
-        const nb = interaction.options.getInteger('nombre');
-        await interaction.channel.bulkDelete(nb, true);
-        await interaction.reply({ content: `${nb} messages supprimés ! 🧹`, ephemeral: true });
+    try {
+        if (interaction.commandName === 'ping') await interaction.reply(`🏓 Pong! Latence: ${client.ws.ping}ms`);
+        if (interaction.commandName === 'say') await interaction.reply(interaction.options.getString('texte'));
+        if (interaction.commandName === 'pileouface') await interaction.reply(Math.random() < 0.5 ? '🪙 Pile !' : '🪙 Face !');
+        if (interaction.commandName === 'des') await interaction.reply(`🎲 Tu as fait un ${Math.floor(Math.random() * 6) + 1} !`);
+        if (interaction.commandName === 'blague') await interaction.reply("Que fait une fraise sur un cheval ? ... Tagada tagada ! 🍓");
+        if (interaction.commandName === 'serveur') await interaction.reply(`Serveur: **${interaction.guild.name}**\nMembres: ${interaction.guild.memberCount}`);
+        if (interaction.commandName === 'botinfo') await interaction.reply("Je suis un bot d'élite contrôlé par une interface web ultra pro ! 😎");
+        if (interaction.commandName === 'help') await interaction.reply("Voici mes commandes : /ping, /say, /avatar, /serveur, /pileouface, /des, /blague, /clear, /botinfo");
+        if (interaction.commandName === 'avatar') {
+            const user = interaction.options.getUser('membre') || interaction.user;
+            await interaction.reply(user.displayAvatarURL({ dynamic: true, size: 512 }));
+        }
+        if (interaction.commandName === 'clear') {
+            if (!interaction.member.permissions.has('ManageMessages')) return interaction.reply({content: "Tu n'as pas la permission !", ephemeral: true});
+            const nb = interaction.options.getInteger('nombre');
+            await interaction.channel.bulkDelete(nb, true);
+            await interaction.reply({ content: `${nb} messages supprimés ! 🧹`, ephemeral: true });
+        }
+    } catch (err) {
+        console.error("Erreur lors de la commande :", err);
     }
 });
 
@@ -69,7 +75,7 @@ client.on(Events.InteractionCreate, async interaction => {
 // 🤖 RÉPONSES AUTOMATIQUES
 // ==========================================
 const reponsesAuto = {
-      "salut": "Salut à toi l'aventurier !",
+    "salut": "Salut à toi l'aventurier !",
     "bonjour": "Bonjour ! J'espère que tu passes une bonne journée.",
     "coucou": "Coucou ! 👋",
     "yo": "Yo tout le monde !",
@@ -83,61 +89,24 @@ const reponsesAuto = {
     "mdr": "Haha, c'est drôle ! 😂",
     "lol": "Je rigole mais intérieurement car je n'ai pas de poumons.",
     "ptdr": "On rigole bien ici ! 🤣",
-    "xptdr": "Attention à ne pas t'étouffer !",
     "gg": "Bien joué ! Beau travail.",
-    "brb": "Reviens vite !",
-    "afk": "Bonne pause, on garde ta place au chaud.",
-    "re": "Re-bonjour ! De retour parmi nous ?",
     "nuit": "Bonne nuit, fais de beaux rêves ! 🌙",
-    "dodo": "Allez, file au lit ! 🛏️",
-    "a+": "À plus tard dans le bus !",
-    "bye": "Bye bye ! 👋",
-    "au revoir": "À la prochaine !",
-    "adieu": "Oh non, dis plutôt au revoir ! 😢",
-    "oui": "C'est un grand oui !",
-    "non": "C'est ton choix, je respecte.",
-    "peut etre": "Le suspense est insoutenable...",
-    "ok": "D'accord, c'est noté. 📝",
-    "dac": "Ça marche pour moi.",
-    "test": "Test reçu 5/5, je fonctionne parfaitement ! 📡",
     "ping": "Pong ! 🏓",
-    "pong": "Ping ! (C'est dans ce sens qu'on joue, non ?)",
-    "aide": "Si tu as besoin d'aide, appelle un admin !",
-    "help": "Mayday, mayday ! On a besoin d'aide ici ! 🆘",
-    "wtf": "Je n'ai pas les mots non plus... 😶",
-    "omg": "Oh My God comme ils disent !",
-    "chaud": "Il fait chaud ici, ou c'est juste mon processeur ?",
-    "froid": "Mets un pull, on n'est pas sur la plage !",
-    "faim": "On se fait une pizza virtuelle ? 🍕",
-    "soif": "Un petit café ? ☕",
-    "manger": "Bon appétit ! 🍔",
-    "boire": "Santé ! 🍻",
-    "jouer": "Qui est chaud pour une petite game ?",
-    "game": "Tryhard activé. 🎮",
-    "serveur": "C'est le meilleur serveur ici, pas de débat.",
     "discord": "Discord c'est bien, mais ce serveur c'est mieux.",
-    "musique": "On met un peu de son ? 🎵",
-    "son": "Monte le volume !",
-    "admin": "Chut, l'admin nous écoute peut-être... 👑",
-    "nigger": " va te faire enculer sale raciste à la merde ",
-    "safone": " c'est qui cette merde déjà, ah oui c'est le suceur de vs altered ",
-    "indie": " c'est lui, mais qui, c'est lui ",
     "shane": " respecter le goat, enfin pas trop non plus "
-    // Ajoute tes autres mots ici, avec une virgule à la fin de chaque ligne (sauf la dernière)
 };
 
 client.on(Events.MessageCreate, async message => {
-    if (message.author.bot) return; // Ignore les autres bots
-    if (!autoResponsesEnabled) return; // Vérifie si le bouton du site web a désactivé l'option
+    if (message.author.bot || !autoResponsesEnabled) return; 
 
-    const texte = message.content.toLowerCase();
+    const texte = message.content.toLowerCase().trim();
     if (reponsesAuto[texte]) {
         await message.reply(reponsesAuto[texte]);
     }
 });
 
 // ==========================================
-// 🌐 SERVEUR WEB, UPLOAD & SOUNDBOARD
+// 🌐 SERVEUR WEB, UPLOAD & MEDIA PLAYER
 // ==========================================
 const app = express();
 const port = process.env.PORT || 3000;
@@ -145,7 +114,6 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuration pour recevoir les MP3
 const storage = multer.diskStorage({
     destination: './sounds/',
     filename: (req, file, cb) => cb(null, file.originalname.replace(/ /g, '_'))
@@ -153,37 +121,41 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 app.post('/api/upload-sound', upload.single('soundFile'), (req, res) => {
-    res.json({ message: "Son ajouté avec succès ! 🎵" });
+    res.json({ message: "Son uploadé et sauvegardé ! 🎵" });
 });
 
 app.get('/api/sounds', (req, res) => {
-    if (!fs.existsSync('./sounds')) fs.mkdirSync('./sounds');
-    const files = fs.readdirSync('./sounds').filter(f => f.endsWith('.mp3') || f.endsWith('.wav') || f.endsWith('.ogg'));
+    const files = fs.readdirSync('./sounds').filter(f => f.match(/\.(mp3|wav|ogg)$/));
     res.json(files);
 });
 
+// -- COMMANDES MEDIA PLAYER --
 app.post('/api/play-sound', async (req, res) => {
     const { soundName, volume } = req.body;
     const connection = getVoiceConnection(GUILD_ID);
     
     if (connection) {
         const resource = createAudioResource(`./sounds/${soundName}`, { inlineVolume: true });
-        resource.volume.setVolume(volume / 100); // Règle le volume
-        
+        resource.volume.setVolume(volume / 100); 
         audioPlayer.play(resource);
         connection.subscribe(audioPlayer);
-        res.json({ message: `Lecture de ${soundName} (Vol: ${volume}%) 🔊` });
+        res.json({ message: `Lecture en cours : ${soundName} 🔊` });
     } else {
-        res.status(400).json({ message: "Le bot n'est pas dans le vocal !" });
+        res.status(400).json({ message: "Le bot n'est pas dans le vocal ! ❌" });
     }
 });
 
+app.get('/api/sound/pause', (req, res) => { audioPlayer.pause(); res.json({message: "Audio en pause ⏸️"}); });
+app.get('/api/sound/resume', (req, res) => { audioPlayer.unpause(); res.json({message: "Audio repris ▶️"}); });
+app.get('/api/sound/stop', (req, res) => { audioPlayer.stop(); res.json({message: "Audio arrêté ⏹️"}); });
+
+// -- CONTRÔLE VOCAL --
 app.get('/api/voice/join', async (req, res) => {
     try {
         const channel = await client.channels.fetch(VOICE_CHANNEL_ID);
-        joinVoiceChannel({ channelId: channel.id, guildId: channel.guild.id, adapterCreator: channel.guild.voiceAdapterCreator });
+        joinVoiceChannel({ channelId: channel.id, guildId: channel.guild.id, adapterCreator: channel.guild.voiceAdapterCreator, selfDeaf: false, selfMute: false });
         res.json({ message: "Vocal rejoint ! 🎧" });
-    } catch(e) { res.status(500).json({ message: "Erreur connexion vocale." }); }
+    } catch(e) { res.status(500).json({ message: "Erreur de connexion vocale." }); }
 });
 
 app.get('/api/voice/leave', (req, res) => {
@@ -192,10 +164,28 @@ app.get('/api/voice/leave', (req, res) => {
     else { res.json({ message: "Le bot n'est pas dans le vocal." }); }
 });
 
-// -- API Système (Pour activer/désactiver les réponses auto) --
+app.get('/api/voice/mute', (req, res) => {
+    const connection = getVoiceConnection(GUILD_ID);
+    if(connection) {
+        connection.joinConfig.selfMute = true;
+        connection.rejoin();
+        res.json({ message: "Bot rendu Muet 🤫" });
+    } else res.json({ message: "Pas dans le vocal !" });
+});
+
+app.get('/api/voice/unmute', (req, res) => {
+    const connection = getVoiceConnection(GUILD_ID);
+    if(connection) {
+        connection.joinConfig.selfMute = false;
+        connection.rejoin();
+        res.json({ message: "Le bot peut reparler 🎤" });
+    } else res.json({ message: "Pas dans le vocal !" });
+});
+
+// -- SYSTÈME --
 app.get('/api/auto/toggle', (req, res) => {
     autoResponsesEnabled = !autoResponsesEnabled;
-    res.json({ message: `Réponses auto : ${autoResponsesEnabled ? "Activées" : "Désactivées"} 🤖` });
+    res.json({ message: `Réponses auto : ${autoResponsesEnabled ? "ACTIVÉES ✅" : "DÉSACTIVÉES ❌"}` });
 });
 
 app.listen(port, () => console.log(`🌐 API Web prête sur le port ${port}`));
