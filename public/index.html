@@ -3,178 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Bot Pro</title>
+    <title>Dashboard Bot Pro - V2</title>
     <style>
-        :root {
-            --discord-blue: #5865F2; --discord-hover: #4752C4; --bg-dark: #1e1f22;
-            --bg-card: #2b2d31; --bg-chat: #313338; --text-main: #f2f3f5;
-            --text-muted: #b5bac1; --success: #23a559; --danger: #da373c;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-dark); color: var(--text-main);
-            margin: 0; padding: 20px; display: flex; justify-content: center;
-        }
-
+        :root { --discord-blue: #5865F2; --bg-dark: #1e1f22; --bg-card: #2b2d31; --text-main: #f2f3f5; --success: #23a559; --danger: #da373c; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 20px; display: flex; justify-content: center; }
         .dashboard { width: 100%; max-width: 1000px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .status { background: #111214; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; }
-        .status-dot { color: var(--success); }
-
+        
+        /* Animations CSS */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background-color: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); animation: fadeIn 0.5s ease-out backwards; margin-bottom: 20px;}
+        .card:nth-child(1) { animation-delay: 0.1s; } .card:nth-child(2) { animation-delay: 0.2s; } .card:nth-child(3) { animation-delay: 0.3s; }
+        
+        .header { text-align: center; margin-bottom: 30px; animation: fadeIn 0.5s ease-out; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         @media(max-width: 768px) { .grid { grid-template-columns: 1fr; } }
-
-        .card { background-color: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        .card h2 { margin-top: 0; font-size: 18px; border-bottom: 1px solid #3f4147; padding-bottom: 10px; }
-
-        .btn { background-color: var(--discord-blue); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 15px; cursor: pointer; margin-bottom: 10px; font-weight: bold; transition: 0.2s;}
-        .btn:hover { background-color: var(--discord-hover); }
-        .btn.danger { background-color: var(--danger); }
-        .btn.danger:hover { background-color: #a1282c; }
-        .btn.success { background-color: var(--success); }
-        .btn.success:hover { background-color: #1a7c43; }
-
-        input, select { width: calc(100% - 24px); padding: 12px; border-radius: 6px; border: none; background: #1e1f22; color: white; margin-bottom: 10px; outline: none;}
-        select { width: 100%; cursor: pointer; }
-
-        /* Le style du chat en direct */
-        .chat-box { background-color: var(--bg-chat); border-radius: 8px; height: 300px; overflow-y: auto; padding: 15px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; border: 1px solid #1e1f22; }
-        .message { background: #2b2d31; padding: 10px; border-radius: 8px; font-size: 14px;}
-        .msg-author { font-weight: bold; color: var(--discord-blue); margin-bottom: 5px; display: block; font-size: 13px;}
-        .msg-channel { font-size: 11px; color: var(--text-muted); float: right; }
-        .bot-tag { background: var(--discord-blue); color: white; font-size: 10px; padding: 2px 5px; border-radius: 3px; margin-left: 5px; }
-
-        #notification { position: fixed; bottom: 20px; right: 20px; background: var(--success); padding: 15px 20px; border-radius: 8px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 1000;}
+        
+        .btn { background-color: var(--discord-blue); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 15px; cursor: pointer; margin-bottom: 10px; font-weight: bold; transition: all 0.2s; }
+        .btn:hover { filter: brightness(1.2); transform: scale(1.02); }
+        .btn.danger { background-color: var(--danger); } .btn.success { background-color: var(--success); }
+        
+        input, select { width: calc(100% - 24px); padding: 12px; border-radius: 6px; border: none; background: #1e1f22; color: white; margin-bottom: 10px; outline: none; transition: 0.2s;}
+        input:focus { border: 1px solid var(--discord-blue); }
+        input[type="file"] { padding: 10px; background: #1e1f22; border: 1px dashed #5865F2; cursor: pointer; }
+        
+        .volume-container { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        input[type="range"] { width: 100%; cursor: pointer; }
+        
+        #notification { position: fixed; bottom: 20px; right: 20px; background: var(--success); padding: 15px 20px; border-radius: 8px; display: none; z-index: 1000; animation: fadeIn 0.3s ease-out; }
     </style>
 </head>
 <body>
 
     <div class="dashboard">
         <div class="header">
-            <h1>🎛️ Centre de Contrôle du Bot</h1>
-            <span class="status"><span class="status-dot">🟢</span> En Ligne & Connecté</span>
+            <h1>✨ Centre de Contrôle Avancé</h1>
         </div>
 
         <div class="grid">
-            <!-- Colonne de gauche (Contrôles) -->
             <div>
-                <div class="card" style="margin-bottom: 20px;">
+                <div class="card">
                     <h2>🎧 Contrôle Vocal</h2>
                     <button class="btn success" onclick="action('/api/voice/join')">Entrer dans le vocal</button>
                     <button class="btn danger" onclick="action('/api/voice/leave')">Quitter le vocal</button>
                 </div>
 
-                <div class="card" style="margin-bottom: 20px;">
-                    <h2>⚙️ Système</h2>
-                    <button class="btn" onclick="action('/api/auto/toggle')">Activer / Désactiver les réponses auto</button>
-                </div>
-
                 <div class="card">
-                    <h2>📢 Envoyer un message</h2>
-                    <select id="channelSelect">
-                        <option value="">Chargement des salons...</option>
-                    </select>
-                    <input type="text" id="messageText" placeholder="Écris ton message ici..." onkeypress="if(event.key === 'Enter') sendMessage()">
-                    <button class="btn" onclick="sendMessage()">Envoyer</button>
+                    <h2>🎵 Soundboard & Media Player</h2>
+                    <form id="uploadForm" onsubmit="uploadSound(event)">
+                        <input type="file" id="soundFile" accept="audio/mp3, audio/wav, audio/ogg" required>
+                        <button type="submit" class="btn">📥 Uploader ce son</button>
+                    </form>
+                    <hr style="border-color: #3f4147; margin: 15px 0;">
+                    
+                    <select id="soundList"><option value="">Chargement des sons...</option></select>
+                    
+                    <div class="volume-container">
+                        <span>🔈</span>
+                        <input type="range" id="volumeSlider" min="0" max="100" value="50">
+                        <span id="volumeValue">50%</span>
+                    </div>
+
+                    <button class="btn success" onclick="playSound()">▶️ Jouer le son</button>
                 </div>
             </div>
 
-            <!-- Colonne de droite (Live Chat) -->
-            <div class="card">
-                <h2>💬 Chat en direct</h2>
-                <p style="font-size: 12px; color: var(--text-muted); margin-top: -5px;">Regarde les messages du serveur ici.</p>
-                
-                <div class="chat-box" id="chatBox">
-                    <!-- Les messages apparaîtront ici -->
-                    <div style="text-align:center; color: var(--text-muted); margin-top: 50px;">
-                        En attente de nouveaux messages... ⏳
-                    </div>
+            <div>
+                <div class="card">
+                    <h2>📚 Info Serveur</h2>
+                    <p>Tes 10 commandes slash ont été chargées automatiquement. Va sur Discord et tape <b>/</b> pour les voir !</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="notification">Action réussie ! ✅</div>
+    <div id="notification">✅ Action réussie !</div>
 
     <script>
-        // 1. Gérer les actions simples (Vocal, Auto-réponses)
+        // Met à jour l'affichage du volume
+        document.getElementById('volumeSlider').addEventListener('input', (e) => {
+            document.getElementById('volumeValue').innerText = e.target.value + '%';
+        });
+
         async function action(endpoint) {
             try {
                 let res = await fetch(endpoint);
                 let data = await res.json();
                 showNotification(data.message);
-            } catch (e) { showNotification("Erreur de connexion avec le bot ❌"); }
+            } catch (e) { showNotification("Erreur ❌"); }
         }
 
-        // 2. Charger les salons au démarrage
-        async function loadChannels() {
-            try {
-                let res = await fetch('/api/channels');
-                let channels = await res.json();
-                let select = document.getElementById('channelSelect');
-                select.innerHTML = '';
-                if(channels.length === 0) select.innerHTML = '<option value="">Aucun salon trouvé</option>';
-                
-                channels.forEach(ch => {
-                    let opt = document.createElement('option');
-                    opt.value = ch.id;
-                    opt.innerHTML = "# " + ch.name;
-                    select.appendChild(opt);
-                });
-            } catch (e) { console.error("Erreur chargement salons"); }
+        // --- NOUVEAU : UPLOAD UN SON ---
+        async function uploadSound(event) {
+            event.preventDefault();
+            const formData = new FormData();
+            formData.append('soundFile', document.getElementById('soundFile').files[0]);
+
+            let res = await fetch('/api/upload-sound', { method: 'POST', body: formData });
+            let data = await res.json();
+            showNotification(data.message);
+            loadSounds(); // Recharge la liste
         }
 
-        // 3. Envoyer le message dans le salon sélectionné
-        async function sendMessage() {
-            const text = document.getElementById('messageText').value;
-            const channelId = document.getElementById('channelSelect').value;
-            
-            if (!text || !channelId) return showNotification("Message ou salon manquant ❌");
-            
-            try {
-                let res = await fetch('/api/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, channelId: channelId })
-                });
-                let data = await res.json();
-                showNotification(data.message);
-                document.getElementById('messageText').value = ''; 
-            } catch (e) { showNotification("Erreur d'envoi ❌"); }
+        // --- NOUVEAU : CHARGER LA LISTE DES SONS ---
+        async function loadSounds() {
+            let res = await fetch('/api/sounds');
+            let sounds = await res.json();
+            let select = document.getElementById('soundList');
+            select.innerHTML = sounds.length ? '' : '<option value="">Aucun son uploadé</option>';
+            sounds.forEach(s => select.innerHTML += `<option value="${s}">${s}</option>`);
         }
 
-        // 4. Écouter le Chat en Direct (Server-Sent Events)
-        const eventSource = new EventSource('/api/chat-stream');
-        eventSource.onmessage = function(event) {
-            const data = JSON.parse(event.data);
-            const chatBox = document.getElementById('chatBox');
-            
-            // Enlève le texte "En attente..." s'il y est encore
-            if(chatBox.innerHTML.includes("En attente")) chatBox.innerHTML = '';
+        // --- NOUVEAU : JOUER LE SON AVEC LE VOLUME ---
+        async function playSound() {
+            const soundName = document.getElementById('soundList').value;
+            const volume = document.getElementById('volumeSlider').value;
+            if(!soundName) return showNotification("Choisis un son d'abord ! ❌");
 
-            const botBadge = data.isBot ? '<span class="bot-tag">BOT</span>' : '';
-            
-            chatBox.innerHTML += `
-                <div class="message">
-                    <span class="msg-channel">#${data.channel}</span>
-                    <span class="msg-author">${data.author} ${botBadge}</span>
-                    <div style="margin-top: 5px;">${data.content}</div>
-                </div>
-            `;
-            // Fait défiler le chat vers le bas automatiquement
-            chatBox.scrollTop = chatBox.scrollHeight;
-        };
+            let res = await fetch('/api/play-sound', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ soundName, volume })
+            });
+            let data = await res.json();
+            showNotification(data.message);
+        }
 
         function showNotification(msg) {
             const notif = document.getElementById('notification');
             notif.innerText = msg;
             notif.style.display = 'block';
-            setTimeout(() => { notif.style.display = 'none'; }, 3000);
+            setTimeout(() => notif.style.display = 'none', 3000);
         }
 
-        // Démarrage : on charge les salons
-        loadChannels();
+        loadSounds();
     </script>
 </body>
 </html>
