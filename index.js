@@ -78,7 +78,10 @@ const reponsesAuto = {
     "discord": "Discord c'est bien, mais ce serveur c'est mieux.",
     "musique": "On met un peu de son ? 🎵",
     "son": "Monte le volume !",
-    "admin": "Chut, l'admin nous écoute peut-être... 👑"
+    "admin": "Chut, l'admin nous écoute peut-être... 👑",
+    "nigger": " va te faire enculer sale raciste à la merde ",
+    "safone": " c'est qui cette merde déjà, ah oui c'est le suceur de vs altered ",
+    "indie": " c'est lui, mais qui, c'est lui "
 };
 
 client.on('messageCreate', (message) => {
