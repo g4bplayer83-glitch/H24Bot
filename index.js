@@ -13,56 +13,66 @@ const client = new Client({
     ]
 });
 
-const GUILD_ID = '1407482110268149820'; // ⚠️ Remplacer ici
-const VOICE_CHANNEL_ID = '1439682653895917588'; // ⚠️ Remplacer ici
+const GUILD_ID = 'TON_VRAI_ID_DE_SERVEUR'; // ⚠️ Remplacer ici
+const VOICE_CHANNEL_ID = 'TON_VRAI_ID_DE_SALON_VOCAL'; // ⚠️ Remplacer ici
 
 let autoResponsesEnabled = true;
+let sseClients = []; // Pour stocker les connexions de l'interface web (Live Chat)
 
 // Système anti-crash
 process.on('unhandledRejection', (reason, p) => console.log(' [Anti-Crash] Erreur ignorée : ', reason));
-process.on('uncaughtException', (err, origin) => console.log(' [Anti-Crash] Exception ignorée : ', err));
+process.on('uncaughtException', (err, origin) => console.log(' [Anti-Crash] Exception : ', err));
 
 const reponsesAuto = {
     "salut": "Salut à toi l'aventurier !",
-    "bonjour": "Bonjour ! J'espère que tu passes une bonne journée.",
-    "coucou": "Coucou ! 👋",
     "ping": "Pong ! 🏓"
-    // Ajoute tes autres réponses ici
+    // (Garde tes autres réponses ici)
 };
 
-client.on('messageCreate', (message) => {
-    if (message.author.bot) return;
-    if (!autoResponsesEnabled) return;
+// ==========================================
+// 🤖 ÉVÉNEMENTS DISCORD
+// ==========================================
 
-    const texte = message.content.toLowerCase();
-    if (reponsesAuto[texte]) {
-        message.reply(reponsesAuto[texte]);
-    }
-});
-
-// Correction de l'événement de démarrage
 client.once(Events.ClientReady, async () => {
     console.log(`🚀 Connecté en tant que ${client.user.tag}!`);
     await rejoindreVocal(); 
 });
 
-// Fonction asynchrone pour être sûr de trouver le serveur
+client.on('messageCreate', (message) => {
+    // 1. Envoyer le message au Dashboard (Live Chat)
+    if (message.guild && message.guild.id === GUILD_ID) {
+        const msgData = JSON.stringify({
+            author: message.author.username,
+            content: message.content,
+            channel: message.channel.name,
+            isBot: message.author.bot
+        });
+        // Envoie à tous les onglets web ouverts
+        sseClients.forEach(clientWeb => clientWeb.write(`data: ${msgData}\n\n`));
+    }
+
+    // 2. Réponses automatiques
+    if (message.author.bot || !autoResponsesEnabled) return;
+    const texte = message.content.toLowerCase();
+    if (reponsesAuto[texte]) message.reply(reponsesAuto[texte]);
+});
+
 async function rejoindreVocal() {
     try {
-        // On force le bot à chercher le serveur au lieu d'utiliser le cache
-        const guild = await client.guilds.fetch(GUILD_ID);
-        if (guild) {
-            joinVoiceChannel({
-                channelId: VOICE_CHANNEL_ID,
-                guildId: guild.id,
-                adapterCreator: guild.voiceAdapterCreator,
-                selfDeaf: false,
-                selfMute: false
-            });
-            console.log('🎧 Vocal rejoint avec succès !');
+        const channel = await client.channels.fetch(VOICE_CHANNEL_ID);
+        if (!channel || !channel.isVoiceBased()) {
+            console.log("❌ Erreur Vocal : Le salon n'existe pas ou n'est pas un salon vocal.");
+            return;
         }
+        joinVoiceChannel({
+            channelId: channel.id,
+            guildId: channel.guild.id,
+            adapterCreator: channel.guild.voiceAdapterCreator,
+        });
+        console.log('🎧 Vocal rejoint avec succès !');
     } catch (error) {
-        console.log("❌ Impossible de rejoindre le vocal. Les IDs sont-ils corrects ?");
+        console.log("❌ Erreur lors de la connexion vocale. Le bot a-t-il les permissions de voir ce salon ?");
+        console.error(error);
     }
 }
 
@@ -73,56 +83,68 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
-
-// Dit à express où chercher le dossier public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Route de secours si le dossier public n'est pas trouvé
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
-        if (err) {
-            res.status(404).send("<h2>Erreur d'affichage</h2><p>Le fichier n'a pas été trouvé. As-tu bien créé un dossier nommé exactement <b>public</b> sur ton GitHub, et as-tu mis <b>index.html</b> dedans ?</p>");
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// -- API Vocal --
+app.get('/api/voice/join', (req, res) => { rejoindreVocal(); res.json({ message: "Tentative de connexion... 🎧" }); });
+app.get('/api/voice/leave', (req, res) => {
+    const connection = getVoiceConnection(GUILD_ID);
+    if (connection) { connection.destroy(); res.json({ message: "Vocal quitté ! 👋" }); } 
+    else { res.json({ message: "Le bot n'est pas dans le vocal." }); }
+});
+
+// -- API Système --
+app.get('/api/auto/toggle', (req, res) => {
+    autoResponsesEnabled = !autoResponsesEnabled;
+    res.json({ message: `Réponses auto : ${autoResponsesEnabled ? "Activées" : "Désactivées"} 🤖` });
+});
+
+// -- API Chat (Nouveautés) --
+// 1. Récupérer la liste des salons texte
+app.get('/api/channels', async (req, res) => {
+    try {
+        const guild = await client.guilds.fetch(GUILD_ID);
+        const textChannels = guild.channels.cache
+            .filter(c => c.isTextBased())
+            .map(c => ({ id: c.id, name: c.name }));
+        res.json(textChannels);
+    } catch (e) {
+        res.json([]);
+    }
+});
+
+// 2. Envoyer un message dans un salon précis
+app.post('/api/send', async (req, res) => {
+    const { message, channelId } = req.body;
+    try {
+        const channel = await client.channels.fetch(channelId);
+        if (channel && channel.isTextBased()) {
+            await channel.send(message);
+            res.json({ message: "Message envoyé ! 💬" });
+        } else {
+            res.status(400).json({ message: "Salon invalide." });
         }
+    } catch (e) {
+        res.status(500).json({ message: "Erreur d'envoi." });
+    }
+});
+
+// 3. Le flux en direct (Live Chat) pour le site web
+app.get('/api/chat-stream', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+    
+    sseClients.push(res);
+    req.on('close', () => {
+        sseClients = sseClients.filter(c => c !== res); // Retire le client s'il ferme la page
     });
 });
 
-app.get('/api/voice/join', (req, res) => {
-    rejoindreVocal();
-    res.json({ message: "Le bot a rejoint le vocal ! 🎧" });
-});
-
-app.get('/api/voice/leave', (req, res) => {
-    const connection = getVoiceConnection(GUILD_ID);
-    if (connection) {
-        connection.destroy();
-        res.json({ message: "Le bot a quitté le vocal ! 👋" });
-    } else {
-        res.json({ message: "Le bot n'est pas dans le vocal." });
-    }
-});
-
-app.get('/api/auto/toggle', (req, res) => {
-    autoResponsesEnabled = !autoResponsesEnabled;
-    const etat = autoResponsesEnabled ? "Activées" : "Désactivées";
-    res.json({ message: `Réponses auto : ${etat} 🤖` });
-});
-
-app.post('/api/send', (req, res) => {
-    const texte = req.body.message;
-    const guild = client.guilds.cache.get(GUILD_ID);
-    
-    if (guild && texte) {
-        const channel = guild.channels.cache.find(c => c.isTextBased());
-        if (channel) {
-            channel.send(texte);
-            return res.json({ message: "Message envoyé avec succès ! 💬" });
-        }
-    }
-    res.json({ message: "Erreur lors de l'envoi du message." });
-});
-
-app.listen(port, () => {
-    console.log(`🌐 API Web prête sur le port ${port}`);
-});
-
+app.listen(port, () => console.log(`🌐 API Web prête sur le port ${port}`));
 client.login(process.env.TOKEN);
