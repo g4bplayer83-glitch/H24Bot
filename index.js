@@ -13,8 +13,8 @@ const client = new Client({
     ]
 });
 
-const GUILD_ID = 'TON_VRAI_ID_DE_SERVEUR'; // ⚠️ Remplacer ici
-const VOICE_CHANNEL_ID = 'TON_VRAI_ID_DE_SALON_VOCAL'; // ⚠️ Remplacer ici
+const GUILD_ID = '1407482110268149820'; // ⚠️ Remplacer ici
+const VOICE_CHANNEL_ID = '1439682653895917588'; // ⚠️ Remplacer ici
 
 let autoResponsesEnabled = true;
 
