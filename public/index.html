@@ -3,104 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Bot Pro - V3</title>
+    <title>Dashboard Bot Ultime V7</title>
     <style>
-        :root { --discord-blue: #5865F2; --discord-dark: #313338; --bg-dark: #1e1f22; --bg-card: #2b2d31; --text-main: #f2f3f5; --success: #23a559; --danger: #da373c; --warning: #f0b232;}
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .dashboard { width: 100%; max-width: 1100px; }
+        :root { --discord-blue: #5865F2; --discord-dark: #2b2d31; --bg-dark: #111214; --bg-card: #1e1f22; --text-main: #f2f3f5; --text-muted: #b5bac1; --success: #23a559; --danger: #da373c; --warning: #f0b232;}
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; }
         
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        .card { background-color: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: fadeIn 0.4s ease-out backwards; margin-bottom: 20px;}
-        .card:nth-child(1) { animation-delay: 0.1s; } .card:nth-child(2) { animation-delay: 0.2s; }
+        #loginScreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(17, 18, 20, 0.95); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
+        .login-box { background: var(--bg-card); padding: 40px; border-radius: 15px; text-align: center; border: 1px solid var(--discord-blue); box-shadow: 0 0 30px rgba(88, 101, 242, 0.3); }
         
-        .header { text-align: center; margin-bottom: 30px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
-        
-        h2 { font-size: 18px; border-bottom: 2px solid var(--discord-dark); padding-bottom: 10px; margin-top: 0; display: flex; align-items: center; gap: 10px;}
-        
-        .btn { background-color: var(--discord-blue); color: white; border: none; padding: 12px; border-radius: 6px; font-size: 15px; cursor: pointer; font-weight: bold; transition: 0.2s; text-align: center; width: 100%; box-sizing: border-box; margin-bottom: 10px;}
-        .btn:hover { filter: brightness(1.2); transform: scale(1.02); }
-        .btn:active { transform: scale(0.98); }
-        .btn.danger { background-color: var(--danger); } .btn.success { background-color: var(--success); } .btn.warning { background-color: var(--warning); color: #000;}
-        
-        .btn-group { display: flex; gap: 10px; margin-bottom: 10px;}
-        .btn-group .btn { margin-bottom: 0; }
+        #adminPanelOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.8); z-index: 8000; display: none; justify-content: center; align-items: center; }
+        .admin-box { background: #1e1f22; padding: 30px; border-radius: 10px; width: 600px; border: 2px solid var(--danger); box-shadow: 0 0 40px rgba(218, 55, 60, 0.4); }
+        .ip-item { display: flex; justify-content: space-between; background: #111214; padding: 10px; margin-bottom: 5px; border-radius: 5px; align-items: center; }
 
-        input, select { width: 100%; padding: 12px; border-radius: 6px; border: none; background: #1e1f22; color: white; margin-bottom: 15px; outline: none; box-sizing: border-box;}
-        input[type="file"] { padding: 10px; border: 1px dashed var(--discord-blue); cursor: pointer; }
+        .dashboard { width: 100%; max-width: 1200px; padding: 20px; margin: 0 auto; display: none; } 
         
-        .volume-container { display: flex; align-items: center; gap: 10px; background: #1e1f22; padding: 10px; border-radius: 6px; margin-bottom: 15px;}
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background-color: var(--bg-card); border-radius: 15px; padding: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.4); margin-bottom: 25px; border: 1px solid #313338;}
+        
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-size: 32px; color: white; text-shadow: 0 0 10px rgba(88, 101, 242, 0.5);}
+        .stats-panel { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;}
+        .stat-box { background: var(--discord-dark); padding: 10px 20px; border-radius: 10px; border-left: 4px solid var(--discord-blue); font-weight: bold; font-size: 14px;}
+        .stat-box span { color: var(--text-muted); font-size: 12px; display: block; text-transform: uppercase;}
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; }
+        h2 { font-size: 18px; border-bottom: 2px solid var(--discord-dark); padding-bottom: 10px; margin-top: 0; color: var(--text-main);}
+        
+        .btn { background-color: var(--discord-blue); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600; transition: 0.2s; width: 100%; margin-bottom: 10px;}
+        .btn:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2);}
+        .btn.danger { background-color: var(--danger); } .btn.success { background-color: var(--success); } .btn.warning { background-color: var(--warning); color: #000;}
+        .btn-group { display: flex; gap: 10px; margin-bottom: 10px;} .btn-group .btn { margin-bottom: 0; }
+
+        input, select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #313338; background: var(--bg-dark); color: white; margin-bottom: 15px; outline: none; box-sizing: border-box;}
+        input:focus, textarea:focus { border-color: var(--discord-blue); }
+        input[type="file"] { padding: 15px; border: 2px dashed var(--discord-blue); background: rgba(88, 101, 242, 0.1); cursor: pointer; text-align: center;}
+        
+        .volume-container { display: flex; align-items: center; gap: 10px; background: var(--bg-dark); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #313338;}
         input[type="range"] { width: 100%; cursor: pointer; margin: 0; }
         
-        /* Contrôles du Media Player */
-        .player-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: #111214; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #3f4147;}
-        .player-controls .btn { padding: 15px 5px; font-size: 14px; }
-        .play-btn { grid-column: span 3; font-size: 18px !important; padding: 20px !important; }
+        .player-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: var(--bg-dark); padding: 15px; border-radius: 10px; border: 1px solid #313338;}
+        .play-btn { grid-column: span 3; font-size: 16px; padding: 15px; text-transform: uppercase; letter-spacing: 1px;}
         
-        #notification { position: fixed; bottom: 20px; right: 20px; background: var(--success); padding: 15px 25px; border-radius: 8px; display: none; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-weight: bold;}
+        #notification { position: fixed; bottom: 20px; right: 20px; background: var(--discord-blue); color: white; padding: 15px 25px; border-radius: 8px; display: none; z-index: 10000; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-weight: bold; border-left: 5px solid white;}
+        
+        /* Cacher la couleur par défaut pour certains styles */
+        .hidden-option { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div class="dashboard">
+    <div id="loginScreen">
+        <div class="login-box">
+            <h1 style="margin-top: 0;">🔒 Accès Sécurisé</h1>
+            <p style="color: var(--text-muted);">Veuillez entrer la clé d'accès au panel.</p>
+            <input type="password" id="mainPassword" placeholder="Mot de passe..." onkeypress="if(event.key === 'Enter') checkMainLogin()">
+            <button class="btn success" onclick="checkMainLogin()">Se connecter</button>
+        </div>
+    </div>
+
+    <div id="adminPanelOverlay">
+        <div class="admin-box">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="color: var(--danger); border: none; margin: 0;">🛡️ CONTRÔLE ADMINISTRATEUR</h2>
+                <button class="btn" style="width: auto; padding: 5px 15px;" onclick="closeAdminPanel()">Fermer</button>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted);">Liste des adresses IP connectées récemment au site web.</p>
+            <button class="btn" onclick="loadConnectedUsers()">🔄 Rafraîchir la liste</button>
+            
+            <div id="userList" style="margin-top: 15px; max-height: 300px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <div class="dashboard" id="mainDashboard">
         <div class="header">
-            <h1>✨ Centre de Contrôle Avancé V3</h1>
-            <span style="background: #111214; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">🟢 Bot en ligne</span>
+            <h1>🚀 Dashboard Ultime V7</h1>
+            <div class="stats-panel">
+                <div class="stat-box"><span>Statut</span> <span style="color: var(--success); font-size: 14px;" id="stat-status">🟢 En ligne</span></div>
+                <div class="stat-box"><span>Latence (Ping)</span> <span id="stat-ping" style="color: white; font-size: 14px;">... ms</span></div>
+                <div class="stat-box"><span>Membres du serveur</span> <span id="stat-members" style="color: white; font-size: 14px;">...</span></div>
+            </div>
         </div>
 
         <div class="grid">
-            <!-- COLONNE GAUCHE -->
             <div>
-                <!-- CONNEXION VOCALE -->
                 <div class="card">
-                    <h2>🎧 Statut Vocal</h2>
+                    <h2>🎧 Contrôle Vocal</h2>
                     <div class="btn-group">
-                        <button class="btn success" onclick="action('/api/voice/join')">Entrer (Join)</button>
-                        <button class="btn danger" onclick="action('/api/voice/leave')">Sortir (Leave)</button>
+                        <button class="btn success" onclick="action('/api/voice/join')">Entrer dans le salon</button>
+                        <button class="btn danger" onclick="action('/api/voice/leave')">Quitter le salon</button>
                     </div>
                     <div class="btn-group">
                         <button class="btn warning" onclick="action('/api/voice/mute')">Rendre Muet 🤫</button>
-                        <button class="btn success" onclick="action('/api/voice/unmute')">Démuter 🎤</button>
+                        <button class="btn" style="background:#4e5058;" onclick="action('/api/voice/unmute')">Démuter 🎤</button>
                     </div>
                 </div>
 
-                <!-- SYSTÈME & AUTOMATISATION -->
                 <div class="card">
-                    <h2>⚙️ Système Chat</h2>
-                    <p style="font-size: 13px; color: #b5bac1;">Le bot détecte tes mots clés (ex: "salut", "ping", "bot") et répond tout seul.</p>
-                    <button class="btn" style="background-color: #636b75;" onclick="action('/api/auto/toggle')">🔁 Activer / Désactiver les Auto-Réponses</button>
+                    <h2>⚙️ Intelligence & Chat</h2>
+                    <button class="btn" style="background-color: #5865F2;" onclick="action('/api/auto/toggle')">🔁 Activer / Désactiver l'IA locale</button>
+                </div>
+
+                <div class="card">
+                    <h2>📢 Envoyer un Message</h2>
+                    
+                    <label style="font-size: 12px; font-weight:bold; color: var(--text-muted); text-transform:uppercase;">1. Choisir le salon :</label>
+                    <select id="msgChannel"><option value="">Chargement des salons...</option></select>
+
+                    <label style="font-size: 12px; font-weight:bold; color: var(--text-muted); text-transform:uppercase;">2. Choisir le style :</label>
+                    <select id="msgStyle" onchange="toggleStyleOptions()">
+                        <option value="embed">🎨 Embed Personnalisé (Avec couleur)</option>
+                        <option value="texte">💬 Texte Brut (Message normal)</option>
+                        <option value="succes">✅ Alerte de Succès (Vert)</option>
+                        <option value="alerte">⚠️ Alerte Importante (Rouge)</option>
+                    </select>
+
+                    <input type="text" id="msgTitle" placeholder="Titre du message...">
+                    <textarea id="msgDesc" rows="3" placeholder="Texte de l'annonce..."></textarea>
+                    
+                    <div id="colorPickerContainer" style="display:flex; gap:10px; align-items:center; margin-bottom:15px;">
+                        <span style="font-size:13px; font-weight:bold;">Couleur :</span>
+                        <input type="color" id="msgColor" value="#5865F2" style="padding:0; width:50px; height:35px; border:none; background:none; cursor:pointer;">
+                    </div>
+                    
+                    <button class="btn success" onclick="sendMessage()">✨ Envoyer le message</button>
                 </div>
             </div>
 
-            <!-- COLONNE DROITE : LE MEDIA PLAYER -->
             <div>
-                <div class="card">
-                    <h2>🎛️ Media Player Ultime</h2>
-                    
+                <div class="card" style="height: 90%;">
+                    <h2>🎛️ Media Player Premium</h2>
                     <form id="uploadForm" onsubmit="uploadSound(event)">
-                        <label style="font-size: 13px; font-weight: bold; color: var(--discord-blue);">1. Ajouter un nouveau son</label>
-                        <div class="btn-group" style="margin-top: 5px;">
+                        <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">1. IMPORTER UN NOUVEAU SON</label>
+                        <div style="margin-top: 10px; margin-bottom: 20px;">
                             <input type="file" id="soundFile" accept="audio/mp3, audio/wav, audio/ogg" required>
-                            <button type="submit" class="btn" style="width: auto; padding: 0 20px;">📤 Upload</button>
+                            <button type="submit" class="btn" style="margin-top: 5px;">📤 Sauvegarder dans la bibliothèque</button>
                         </div>
                     </form>
+                    <hr style="border-color: #313338; margin: 20px 0;">
                     
-                    <hr style="border-color: #3f4147; margin: 15px 0;">
-                    
-                    <label style="font-size: 13px; font-weight: bold; color: var(--discord-blue);">2. Choisir la piste</label>
-                    <select id="soundList"><option value="">Chargement de ta bibliothèque...</option></select>
+                    <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">2. SÉLECTIONNER UNE PISTE</label>
+                    <select id="soundList" style="margin-top: 10px;"><option value="">Chargement...</option></select>
                     
                     <div class="volume-container">
-                        <span>🔈 Vol:</span>
+                        <span>🔈 Volume</span>
                         <input type="range" id="volumeSlider" min="0" max="100" value="50">
-                        <span id="volumeValue" style="min-width: 40px; text-align: right; font-weight: bold;">50%</span>
+                        <span id="volumeValue" style="min-width: 40px; text-align: right; font-weight: bold; color: var(--discord-blue);">50%</span>
                     </div>
 
                     <div class="player-controls">
-                        <button class="btn success play-btn" onclick="playSound()">▶️ JOUER LA PISTE</button>
+                        <button class="btn success play-btn" onclick="playSound()">▶️ Lancer la piste audio</button>
                         <button class="btn warning" onclick="action('/api/sound/pause')">⏸️ Pause</button>
-                        <button class="btn" style="background: var(--discord-blue);" onclick="action('/api/sound/resume')">⏯️ Reprendre</button>
-                        <button class="btn danger" onclick="action('/api/sound/stop')">⏹️ Stop</button>
+                        <button class="btn" style="background: #4e5058;" onclick="action('/api/sound/resume')">⏯️ Reprendre</button>
+                        <button class="btn danger" onclick="action('/api/sound/stop')">⏹️ Stopper</button>
                     </div>
                 </div>
             </div>
@@ -110,63 +164,115 @@
     <div id="notification">✅ Action réussie !</div>
 
     <script>
-        document.getElementById('volumeSlider').addEventListener('input', (e) => {
-            document.getElementById('volumeValue').innerText = e.target.value + '%';
+        // --- 1. SYSTÈME DE CONNEXION ---
+        function checkMainLogin() {
+            const pass = document.getElementById('mainPassword').value;
+            if (pass === "Indie59123") {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainDashboard').style.display = 'block';
+                showNotification("Accès autorisé ! 🔓");
+                initApp(); 
+            } else {
+                showNotification("Mot de passe incorrect ❌");
+                document.getElementById('mainPassword').value = "";
+            }
+        }
+
+        // --- 2. EASTER EGG (ADMIN) ---
+        let typedKeys = "";
+        window.addEventListener('keydown', (e) => {
+            if(document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+            typedKeys += e.key.toLowerCase();
+            if (typedKeys.includes("admin")) {
+                typedKeys = ""; 
+                let adminPass = prompt("🔑 Code d'accès administrateur requis :");
+                if (adminPass === "IndieGabVR2024") {
+                    document.getElementById('adminPanelOverlay').style.display = 'flex';
+                    loadConnectedUsers();
+                } else if (adminPass !== null) {
+                    showNotification("Accès refusé. ❌");
+                }
+            }
         });
 
-        async function action(endpoint) {
+        // --- 3. FONCTIONS ADMIN ---
+        function closeAdminPanel() { document.getElementById('adminPanelOverlay').style.display = 'none'; }
+        async function loadConnectedUsers() {
             try {
-                let res = await fetch(endpoint);
-                let data = await res.json();
-                showNotification(data.message);
-            } catch (e) { showNotification("Erreur serveur ❌"); }
+                let res = await fetch('/api/admin/users'); let ips = await res.json();
+                const listDiv = document.getElementById('userList'); listDiv.innerHTML = "";
+                if(ips.length === 0) { listDiv.innerHTML = "<p style='color: #b5bac1;'>Aucune IP détectée.</p>"; return; }
+                ips.forEach(ip => {
+                    listDiv.innerHTML += `<div class="ip-item"><span style="font-weight: bold; color: white;">🌐 ${ip}</span><div><button class="btn warning" style="width: auto; padding: 5px 10px; margin: 0 5px;" onclick="kickIP('${ip}')">Kick</button><button class="btn danger" style="width: auto; padding: 5px 10px; margin: 0;" onclick="banIP('${ip}')">BAN IP</button></div></div>`;
+                });
+            } catch (e) { showNotification("Erreur chargement IP"); }
+        }
+        async function banIP(ip) { if(!confirm(`Bannir définitivement ${ip} ?`)) return; try { let res = await fetch('/api/admin/ban', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip }) }); let data = await res.json(); showNotification(data.message); loadConnectedUsers(); } catch (e) {} }
+        async function kickIP(ip) { try { let res = await fetch('/api/admin/kick', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip }) }); let data = await res.json(); showNotification(data.message); loadConnectedUsers(); } catch (e) {} }
+
+        // --- 4. DASHBOARD CLASSIQUE ---
+        document.getElementById('volumeSlider').addEventListener('input', (e) => { document.getElementById('volumeValue').innerText = e.target.value + '%'; });
+        function showNotification(msg) { const notif = document.getElementById('notification'); notif.innerText = msg; notif.style.display = 'block'; setTimeout(() => notif.style.display = 'none', 4000); }
+        async function action(endpoint) { try { let res = await fetch(endpoint); let data = await res.json(); showNotification(data.message); } catch (e) { showNotification("Erreur ❌"); } }
+
+        // Mettre à jour l'interface selon le style choisi
+        function toggleStyleOptions() {
+            const style = document.getElementById('msgStyle').value;
+            const colorPicker = document.getElementById('colorPickerContainer');
+            const titleInput = document.getElementById('msgTitle');
+
+            if (style === 'texte') {
+                colorPicker.style.display = 'none';
+                titleInput.style.display = 'none'; // Pas de titre pour un texte normal
+            } else if (style === 'embed') {
+                colorPicker.style.display = 'flex';
+                titleInput.style.display = 'block';
+            } else {
+                // Pour alerte et succes
+                colorPicker.style.display = 'none';
+                titleInput.style.display = 'block';
+            }
         }
 
-        async function uploadSound(event) {
-            event.preventDefault();
-            const fileInput = document.getElementById('soundFile');
-            if(!fileInput.files.length) return;
+        async function loadChannels() {
+            try {
+                let res = await fetch('/api/channels'); let channels = await res.json();
+                let select = document.getElementById('msgChannel');
+                select.innerHTML = channels.length ? '' : '<option value="">Aucun salon trouvé</option>';
+                channels.forEach(c => select.innerHTML += `<option value="${c.id}"># ${c.name}</option>`);
+            } catch(e) {}
+        }
+
+        async function sendMessage() {
+            const channelId = document.getElementById('msgChannel').value;
+            const style = document.getElementById('msgStyle').value;
+            const title = document.getElementById('msgTitle').value;
+            const desc = document.getElementById('msgDesc').value;
+            const color = document.getElementById('msgColor').value;
             
-            const formData = new FormData();
-            formData.append('soundFile', fileInput.files[0]);
-
-            let res = await fetch('/api/upload-sound', { method: 'POST', body: formData });
-            let data = await res.json();
-            showNotification(data.message);
-            fileInput.value = ""; // Vide la case après upload
-            loadSounds(); 
+            if(!channelId) return showNotification("Tu dois choisir un salon ! ❌");
+            if(!desc) return showNotification("Texte obligatoire ! ❌");
+            
+            try {
+                let res = await fetch('/api/send-message', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ channelId, style, title, description: desc, color }) 
+                });
+                let data = await res.json(); 
+                showNotification(data.message);
+                
+                // Ne vide que le texte pour pouvoir renvoyer vite si besoin
+                document.getElementById('msgDesc').value = "";
+            } catch (e) { showNotification("Erreur ❌"); }
         }
 
-        async function loadSounds() {
-            let res = await fetch('/api/sounds');
-            let sounds = await res.json();
-            let select = document.getElementById('soundList');
-            select.innerHTML = sounds.length ? '' : '<option value="">Aucun fichier audio trouvé</option>';
-            sounds.forEach(s => select.innerHTML += `<option value="${s}">${s}</option>`);
-        }
+        async function uploadSound(event) { event.preventDefault(); const fileInput = document.getElementById('soundFile'); if(!fileInput.files.length) return; const formData = new FormData(); formData.append('soundFile', fileInput.files[0]); let res = await fetch('/api/upload-sound', { method: 'POST', body: formData }); let data = await res.json(); showNotification(data.message); fileInput.value = ""; loadSounds(); }
+        async function loadSounds() { let res = await fetch('/api/sounds'); let sounds = await res.json(); let select = document.getElementById('soundList'); select.innerHTML = sounds.length ? '' : '<option value="">Bibliothèque vide</option>'; sounds.forEach(s => select.innerHTML += `<option value="${s}">${s}</option>`); }
+        async function playSound() { const soundName = document.getElementById('soundList').value; const volume = document.getElementById('volumeSlider').value; if(!soundName) return showNotification("Aucune piste ! ❌"); let res = await fetch('/api/play-sound', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ soundName, volume }) }); let data = await res.json(); showNotification(data.message); }
+        async function fetchStats() { try { let res = await fetch('/api/stats'); let stats = await res.json(); document.getElementById('stat-ping').innerText = stats.ping + " ms"; document.getElementById('stat-members').innerText = stats.members; } catch(e) {} }
 
-        async function playSound() {
-            const soundName = document.getElementById('soundList').value;
-            const volume = document.getElementById('volumeSlider').value;
-            if(!soundName) return showNotification("Choisis une piste d'abord ! ❌");
-
-            let res = await fetch('/api/play-sound', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ soundName, volume })
-            });
-            let data = await res.json();
-            showNotification(data.message);
-        }
-
-        function showNotification(msg) {
-            const notif = document.getElementById('notification');
-            notif.innerText = msg;
-            notif.style.display = 'block';
-            setTimeout(() => notif.style.display = 'none', 3000);
-        }
-
-        // On charge la bibliothèque au démarrage
-        loadSounds();
+        function initApp() { loadSounds(); loadChannels(); fetchStats(); setInterval(fetchStats, 5000); }
     </script>
 </body>
 </html>
