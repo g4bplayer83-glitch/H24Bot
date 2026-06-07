@@ -109,7 +109,8 @@ client.on(Events.InteractionCreate, async interaction => {
 const reponsesAuto = {
     "salut": "Salut à toi !", "bonjour": "Bonjour !", "ping": "Pong ! 🏓", "bot": "Tu parles de moi ? Je suis là !",
     "mdr": "Haha 😂", "lol": "Je rigole intérieurement.", "ptdr": "🤣", "quoi": "Feur ! 💇‍♂️", "hein": "Deux ! ✌️",
-    "shane": "Respecter le goat, enfin pas trop non plus"
+    "shane": "Respecter le goat, enfin pas trop non plus",
+    "skaly": " c'est un petit femboy ecoute "
 };
 
 client.on(Events.MessageCreate, async message => {
