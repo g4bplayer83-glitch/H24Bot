@@ -3,25 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Bot Ultime V7</title>
+    <title>Dashboard Bot Ultime V10</title>
     <style>
-        :root { --discord-blue: #5865F2; --discord-dark: #2b2d31; --bg-dark: #111214; --bg-card: #1e1f22; --text-main: #f2f3f5; --text-muted: #b5bac1; --success: #23a559; --danger: #da373c; --warning: #f0b232;}
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; }
+        body { 
+            --discord-blue: #5865F2; --discord-dark: #2b2d31; --bg-dark: #111214; --bg-card: #1e1f22; --text-main: #f2f3f5; --text-muted: #b5bac1; --success: #23a559; --danger: #da373c; --warning: #f0b232;
+            font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; transition: 0.3s;
+        }
+        body.theme-matrix { --discord-blue: #00ff00; --discord-dark: #002200; --bg-dark: #000000; --bg-card: #001100; --text-main: #00ff00; --text-muted: #00aa00; --success: #00ff00; --danger: #ff0000; --warning: #ffff00; font-family: 'Courier New', monospace;}
+        body.theme-neon { --discord-blue: #ff00ff; --discord-dark: #2a002a; --bg-dark: #0f001a; --bg-card: #1a0033; --text-main: #00ffff; --text-muted: #ff99ff; --success: #00ff00; --danger: #ff0055; --warning: #ffff00; }
+
+        #loginScreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
+        .login-box { background: var(--bg-card); padding: 40px; border-radius: 15px; text-align: center; border: 1px solid var(--discord-blue); box-shadow: 0 0 30px rgba(var(--discord-blue), 0.3); }
         
-        #loginScreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(17, 18, 20, 0.95); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
-        .login-box { background: var(--bg-card); padding: 40px; border-radius: 15px; text-align: center; border: 1px solid var(--discord-blue); box-shadow: 0 0 30px rgba(88, 101, 242, 0.3); }
+        #adminBadge { position: fixed; top: 20px; left: 20px; background: var(--danger); color: white; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 5000; display: none; cursor: pointer; border: 2px solid white; animation: slideIn 0.5s;}
+        #adminBadge:hover { filter: brightness(1.2); transform: scale(1.05); }
         
+        #topRightNotif { position: fixed; top: 20px; right: 20px; background: var(--success); color: white; padding: 12px 20px; border-radius: 8px; font-weight: bold; z-index: 9999; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border-left: 5px solid white; animation: slideIn 0.3s; }
+
         #adminPanelOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.8); z-index: 8000; display: none; justify-content: center; align-items: center; }
-        .admin-box { background: #1e1f22; padding: 30px; border-radius: 10px; width: 600px; border: 2px solid var(--danger); box-shadow: 0 0 40px rgba(218, 55, 60, 0.4); }
-        .ip-item { display: flex; justify-content: space-between; background: #111214; padding: 10px; margin-bottom: 5px; border-radius: 5px; align-items: center; }
+        .admin-box { background: var(--bg-card); padding: 30px; border-radius: 10px; width: 600px; border: 2px solid var(--danger); }
+        .ip-item { display: flex; justify-content: space-between; background: var(--bg-dark); padding: 10px; margin-bottom: 5px; border-radius: 5px; align-items: center; border: 1px solid var(--discord-dark);}
 
         .dashboard { width: 100%; max-width: 1200px; padding: 20px; margin: 0 auto; display: none; } 
-        
         @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .card { background-color: var(--bg-card); border-radius: 15px; padding: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.4); margin-bottom: 25px; border: 1px solid #313338;}
+        .card { background-color: var(--bg-card); border-radius: 15px; padding: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.4); margin-bottom: 25px; border: 1px solid var(--discord-dark);}
         
-        .header { text-align: center; margin-bottom: 40px; }
-        .header h1 { font-size: 32px; color: white; text-shadow: 0 0 10px rgba(88, 101, 242, 0.5);}
+        .header { text-align: center; margin-bottom: 20px; position: relative;}
+        .header h1 { font-size: 32px; color: var(--text-main); margin-bottom: 10px; }
+        
+        .theme-selector { position: absolute; top: 0; right: 0; display: flex; align-items: center; gap: 10px; background: var(--discord-dark); padding: 5px 15px; border-radius: 20px; border: 1px solid var(--discord-blue);}
+        .theme-selector select { width: auto; margin: 0; padding: 5px; background: transparent; border: none; font-weight: bold; color: var(--discord-blue);}
+        
         .stats-panel { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;}
         .stat-box { background: var(--discord-dark); padding: 10px 20px; border-radius: 10px; border-left: 4px solid var(--discord-blue); font-weight: bold; font-size: 14px;}
         .stat-box span { color: var(--text-muted); font-size: 12px; display: block; text-transform: uppercase;}
@@ -29,87 +41,142 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; }
         h2 { font-size: 18px; border-bottom: 2px solid var(--discord-dark); padding-bottom: 10px; margin-top: 0; color: var(--text-main);}
         
-        .btn { background-color: var(--discord-blue); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600; transition: 0.2s; width: 100%; margin-bottom: 10px;}
-        .btn:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2);}
-        .btn.danger { background-color: var(--danger); } .btn.success { background-color: var(--success); } .btn.warning { background-color: var(--warning); color: #000;}
+        .btn { background-color: var(--discord-blue); color: var(--text-main); border: none; padding: 12px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; margin-bottom: 10px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);}
+        .btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .btn.danger { background-color: var(--danger); } .btn.success { background-color: var(--success); } .btn.warning { background-color: var(--warning); color: #000; text-shadow: none;}
         .btn-group { display: flex; gap: 10px; margin-bottom: 10px;} .btn-group .btn { margin-bottom: 0; }
 
-        input, select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #313338; background: var(--bg-dark); color: white; margin-bottom: 15px; outline: none; box-sizing: border-box;}
+        input, select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--discord-dark); background: var(--bg-dark); color: var(--text-main); margin-bottom: 15px; outline: none; box-sizing: border-box; font-family: inherit;}
         input:focus, textarea:focus { border-color: var(--discord-blue); }
-        input[type="file"] { padding: 15px; border: 2px dashed var(--discord-blue); background: rgba(88, 101, 242, 0.1); cursor: pointer; text-align: center;}
+        input[type="file"] { padding: 15px; border: 2px dashed var(--discord-blue); background: rgba(88, 101, 242, 0.05); cursor: pointer; text-align: center;}
         
-        .volume-container { display: flex; align-items: center; gap: 10px; background: var(--bg-dark); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #313338;}
+        .volume-container { display: flex; align-items: center; gap: 10px; background: var(--bg-dark); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--discord-dark);}
         input[type="range"] { width: 100%; cursor: pointer; margin: 0; }
         
-        .player-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: var(--bg-dark); padding: 15px; border-radius: 10px; border: 1px solid #313338;}
+        .player-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: var(--bg-dark); padding: 15px; border-radius: 10px; border: 1px solid var(--discord-dark);}
         .play-btn { grid-column: span 3; font-size: 16px; padding: 15px; text-transform: uppercase; letter-spacing: 1px;}
         
+        .chat-viewer { background: var(--bg-dark); height: 250px; overflow-y: auto; padding: 15px; border-radius: 8px; border: 1px solid var(--discord-dark); margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; font-size: 13px;}
+        .msg { background: var(--bg-card); padding: 10px; border-radius: 8px; border-left: 3px solid var(--discord-blue); display: flex; gap: 10px; align-items: flex-start;}
+        .msg img { width: 35px; height: 35px; border-radius: 50%; border: 1px solid var(--discord-dark); object-fit: cover; }
+        .msg-body { flex: 1; }
+        .msg-head { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .msg-author { font-weight: bold; color: var(--discord-blue); }
+        .msg-bot-tag { background: var(--discord-blue); color: white; padding: 2px 5px; border-radius: 3px; font-size: 10px; margin-left: 5px; }
+        .msg-time { color: var(--text-muted); font-size: 11px; }
+
+        .voice-members { display: flex; gap: 10px; overflow-x: auto; padding: 10px; background: var(--bg-dark); border-radius: 8px; border: 1px solid var(--discord-dark); margin-top: 10px;}
+        .v-member { background: var(--bg-card); padding: 5px 12px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: bold; border: 1px solid var(--discord-blue); white-space: nowrap;}
+        .v-member img { width: 24px; height: 24px; border-radius: 50%; }
+
         #notification { position: fixed; bottom: 20px; right: 20px; background: var(--discord-blue); color: white; padding: 15px 25px; border-radius: 8px; display: none; z-index: 10000; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-weight: bold; border-left: 5px solid white;}
-        
-        /* Cacher la couleur par défaut pour certains styles */
-        .hidden-option { display: none !important; }
     </style>
 </head>
 <body>
 
+    <div id="topRightNotif">🔔 Nouvelle connexion détectée !</div>
+
+    <!-- BOUTON ADMIN CLICQUABLE -->
+    <div id="adminBadge" onclick="document.getElementById('adminPanelOverlay').style.display='flex'; loadConnectedUsers();">
+        🛡️ ADMIN PANEL
+    </div>
+
     <div id="loginScreen">
         <div class="login-box">
-            <h1 style="margin-top: 0;">🔒 Accès Sécurisé</h1>
-            <p style="color: var(--text-muted);">Veuillez entrer la clé d'accès au panel.</p>
-            <input type="password" id="mainPassword" placeholder="Mot de passe..." onkeypress="if(event.key === 'Enter') checkMainLogin()">
-            <button class="btn success" onclick="checkMainLogin()">Se connecter</button>
+            <h1 style="margin-top: 0; color: var(--text-main);">🔒 Portail H24</h1>
+            <p style="color: var(--text-muted);">Accès restreint. Mot de passe requis.</p>
+            <input type="password" id="mainPassword" placeholder="••••••••" onkeypress="if(event.key === 'Enter') attemptLogin()">
+            <button class="btn success" onclick="attemptLogin()">S'identifier</button>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 15px;">Ton IP est enregistrée pour des raisons de sécurité.</p>
         </div>
     </div>
 
     <div id="adminPanelOverlay">
         <div class="admin-box">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="color: var(--danger); border: none; margin: 0;">🛡️ CONTRÔLE ADMINISTRATEUR</h2>
-                <button class="btn" style="width: auto; padding: 5px 15px;" onclick="closeAdminPanel()">Fermer</button>
+                <h2 style="color: var(--danger); border: none; margin: 0;">🛡️ SÉCURITÉ & RÉSEAU</h2>
+                <button class="btn" style="width: auto; padding: 5px 15px;" onclick="document.getElementById('adminPanelOverlay').style.display='none';">Fermer</button>
             </div>
-            <p style="font-size: 13px; color: var(--text-muted);">Liste des adresses IP connectées récemment au site web.</p>
+            <p style="font-size: 13px; color: var(--text-muted);">Liste des adresses IP connectées au site web.</p>
             <button class="btn" onclick="loadConnectedUsers()">🔄 Rafraîchir la liste</button>
-            
             <div id="userList" style="margin-top: 15px; max-height: 300px; overflow-y: auto;"></div>
         </div>
     </div>
 
     <div class="dashboard" id="mainDashboard">
         <div class="header">
-            <h1>🚀 Dashboard Ultime V7</h1>
+            <h1>🚀 Dashboard Ultime V10</h1>
+            
+            <div class="theme-selector">
+                🎨 <select id="themeSelect" onchange="changeTheme()">
+                    <option value="dark">Standard</option>
+                    <option value="matrix">Matrice (Hacker)</option>
+                    <option value="neon">Néon Cyberpunk</option>
+                </select>
+            </div>
+
             <div class="stats-panel">
-                <div class="stat-box"><span>Statut</span> <span style="color: var(--success); font-size: 14px;" id="stat-status">🟢 En ligne</span></div>
-                <div class="stat-box"><span>Latence (Ping)</span> <span id="stat-ping" style="color: white; font-size: 14px;">... ms</span></div>
-                <div class="stat-box"><span>Membres du serveur</span> <span id="stat-members" style="color: white; font-size: 14px;">...</span></div>
+                <div class="stat-box"><span>Statut Bot</span> <span style="color: var(--success);" id="stat-status">🟢 En ligne</span></div>
+                <div class="stat-box"><span>Latence</span> <span id="stat-ping" style="color: var(--text-main);">... ms</span></div>
+                <div class="stat-box"><span>Membres</span> <span id="stat-members" style="color: var(--text-main);">...</span></div>
             </div>
         </div>
 
         <div class="grid">
+            <!-- COLONNE 1 -->
             <div>
                 <div class="card">
                     <h2>🎧 Contrôle Vocal</h2>
                     <div class="btn-group">
-                        <button class="btn success" onclick="action('/api/voice/join')">Entrer dans le salon</button>
-                        <button class="btn danger" onclick="action('/api/voice/leave')">Quitter le salon</button>
+                        <button class="btn success" onclick="action('/api/voice/join')">Forcer l'entrée</button>
+                        <button class="btn danger" onclick="action('/api/voice/leave')">Quitter proprement</button>
                     </div>
                     <div class="btn-group">
                         <button class="btn warning" onclick="action('/api/voice/mute')">Rendre Muet 🤫</button>
-                        <button class="btn" style="background:#4e5058;" onclick="action('/api/voice/unmute')">Démuter 🎤</button>
+                        <button class="btn" style="background:var(--discord-dark);" onclick="action('/api/voice/unmute')">Démuter 🎤</button>
+                    </div>
+                    
+                    <label style="font-size: 11px; font-weight:bold; color: var(--text-muted); display: block; margin-top: 15px;">👥 ACTUELLEMENT EN VOCAL :</label>
+                    <div class="voice-members" id="voiceMembersBox">
+                        <span style="font-size:12px; color:var(--text-muted);">Chargement...</span>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h2>⚙️ Intelligence & Chat</h2>
-                    <button class="btn" style="background-color: #5865F2;" onclick="action('/api/auto/toggle')">🔁 Activer / Désactiver l'IA locale</button>
+                    <h2>🗣️ Synthèse Vocale (TTS)</h2>
+                    <p style="font-size: 13px; color: var(--text-muted);">Le bot lira ce texte à voix haute (Max: 200 lettres).</p>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="ttsText" placeholder="Texte à dire..." style="flex:1; margin:0;" onkeypress="if(event.key === 'Enter') sendTTS()">
+                        <select id="ttsLang" style="width: 80px; margin:0; padding: 10px;">
+                            <option value="fr">FR</option>
+                            <option value="en">EN</option>
+                            <option value="es">ES</option>
+                        </select>
+                        <button class="btn success" style="width:auto; margin:0;" onclick="sendTTS()">Parler</button>
+                    </div>
                 </div>
 
                 <div class="card">
-                    <h2>📢 Envoyer un Message</h2>
-                    
-                    <label style="font-size: 12px; font-weight:bold; color: var(--text-muted); text-transform:uppercase;">1. Choisir le salon :</label>
-                    <select id="msgChannel"><option value="">Chargement des salons...</option></select>
+                    <h2>⚙️ Intelligence & IA Locale</h2>
+                    <button class="btn" style="background-color: var(--discord-blue);" onclick="action('/api/auto/toggle')">🔁 Activer / Désactiver l'IA</button>
+                </div>
+            </div>
 
-                    <label style="font-size: 12px; font-weight:bold; color: var(--text-muted); text-transform:uppercase;">2. Choisir le style :</label>
+            <!-- COLONNE 2 -->
+            <div>
+                <div class="card">
+                    <h2>📢 Centre de Messages & Espion</h2>
+                    
+                    <div style="display:flex; gap:10px; margin-bottom: 10px;">
+                        <select id="msgChannel" onchange="loadChannelMessages()"><option value="">Chargement des salons...</option></select>
+                        <button class="btn" style="width:auto; padding: 0 15px; margin:0;" onclick="loadChannelMessages()">🔄</button>
+                    </div>
+
+                    <div class="chat-viewer" id="chatViewer">
+                        <div style="text-align:center; color:var(--text-muted); margin-top:100px;">Sélectionne un salon pour lire les messages...</div>
+                    </div>
+
+                    <label style="font-size: 12px; font-weight:bold; color: var(--text-muted);">STYLE D'ANNONCE :</label>
                     <select id="msgStyle" onchange="toggleStyleOptions()">
                         <option value="embed">🎨 Embed Personnalisé (Avec couleur)</option>
                         <option value="texte">💬 Texte Brut (Message normal)</option>
@@ -120,6 +187,9 @@
                     <input type="text" id="msgTitle" placeholder="Titre du message...">
                     <textarea id="msgDesc" rows="3" placeholder="Texte de l'annonce..."></textarea>
                     
+                    <!-- NOUVEAU: Champ pour les Images -->
+                    <input type="text" id="msgImage" placeholder="🔗 URL d'une image/vidéo (Optionnel)">
+                    
                     <div id="colorPickerContainer" style="display:flex; gap:10px; align-items:center; margin-bottom:15px;">
                         <span style="font-size:13px; font-weight:bold;">Couleur :</span>
                         <input type="color" id="msgColor" value="#5865F2" style="padding:0; width:50px; height:35px; border:none; background:none; cursor:pointer;">
@@ -127,25 +197,21 @@
                     
                     <button class="btn success" onclick="sendMessage()">✨ Envoyer le message</button>
                 </div>
-            </div>
 
-            <div>
-                <div class="card" style="height: 90%;">
+                <div class="card">
                     <h2>🎛️ Media Player Premium</h2>
                     <form id="uploadForm" onsubmit="uploadSound(event)">
-                        <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">1. IMPORTER UN NOUVEAU SON</label>
-                        <div style="margin-top: 10px; margin-bottom: 20px;">
-                            <input type="file" id="soundFile" accept="audio/mp3, audio/wav, audio/ogg" required>
-                            <button type="submit" class="btn" style="margin-top: 5px;">📤 Sauvegarder dans la bibliothèque</button>
+                        <div style="display:flex; gap: 10px;">
+                            <input type="file" id="soundFile" accept="audio/mp3, audio/wav, audio/ogg" required style="flex:1; margin:0;">
+                            <button type="submit" class="btn" style="width:auto; margin:0;">📤 Upload</button>
                         </div>
                     </form>
-                    <hr style="border-color: #313338; margin: 20px 0;">
+                    <hr style="border-color: var(--discord-dark); margin: 15px 0;">
                     
-                    <label style="font-size: 12px; font-weight: bold; color: var(--text-muted);">2. SÉLECTIONNER UNE PISTE</label>
-                    <select id="soundList" style="margin-top: 10px;"><option value="">Chargement...</option></select>
+                    <select id="soundList"><option value="">Chargement de la bibliothèque...</option></select>
                     
                     <div class="volume-container">
-                        <span>🔈 Volume</span>
+                        <span>🔈</span>
                         <input type="range" id="volumeSlider" min="0" max="100" value="50">
                         <span id="volumeValue" style="min-width: 40px; text-align: right; font-weight: bold; color: var(--discord-blue);">50%</span>
                     </div>
@@ -153,7 +219,7 @@
                     <div class="player-controls">
                         <button class="btn success play-btn" onclick="playSound()">▶️ Lancer la piste audio</button>
                         <button class="btn warning" onclick="action('/api/sound/pause')">⏸️ Pause</button>
-                        <button class="btn" style="background: #4e5058;" onclick="action('/api/sound/resume')">⏯️ Reprendre</button>
+                        <button class="btn" style="background: var(--discord-dark);" onclick="action('/api/sound/resume')">⏯️ Reprendre</button>
                         <button class="btn danger" onclick="action('/api/sound/stop')">⏹️ Stopper</button>
                     </div>
                 </div>
@@ -164,83 +230,180 @@
     <div id="notification">✅ Action réussie !</div>
 
     <script>
-        // --- 1. SYSTÈME DE CONNEXION ---
-        function checkMainLogin() {
-            const pass = document.getElementById('mainPassword').value;
-            if (pass === "Indie59123") {
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('mainDashboard').style.display = 'block';
-                showNotification("Accès autorisé ! 🔓");
-                initApp(); 
-            } else {
-                showNotification("Mot de passe incorrect ❌");
-                document.getElementById('mainPassword').value = "";
-            }
+        function changeTheme() {
+            const theme = document.getElementById('themeSelect').value;
+            document.body.className = theme === 'dark' ? '' : 'theme-' + theme;
+            localStorage.setItem('bot_theme', theme);
         }
 
-        // --- 2. EASTER EGG (ADMIN) ---
+        window.onload = () => {
+            const savedTheme = localStorage.getItem('bot_theme') || 'dark';
+            document.getElementById('themeSelect').value = savedTheme;
+            changeTheme();
+
+            const savedPass = localStorage.getItem('bot_password');
+            if (savedPass === "Indie59123") unlockDashboard("Utilisateur");
+            else if (savedPass === "IndieGabVR2024") {
+                adminUnlocked = true;
+                unlockDashboard("Admin");
+            }
+        };
+
+        function attemptLogin() {
+            const pass = document.getElementById('mainPassword').value;
+            if (pass === "Indie59123") { localStorage.setItem('bot_password', pass); unlockDashboard("Utilisateur"); } 
+            else if (pass === "IndieGabVR2024") { 
+                localStorage.setItem('bot_password', pass); 
+                adminUnlocked = true;
+                unlockDashboard("Admin"); 
+            } 
+            else { showNotification("Mot de passe incorrect ❌"); document.getElementById('mainPassword').value = ""; }
+        }
+
+        function unlockDashboard(role) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainDashboard').style.display = 'block';
+            showNotification(`Bienvenue, ${role} ! 🔓`);
+            if (role === "Admin") document.getElementById('adminBadge').style.display = 'block'; 
+            fetch('/api/notify-login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({role: role}) });
+            initApp(); 
+        }
+
+        // --- NOUVEAU: LOGIQUE D'ADMIN INTELLIGENTE ---
+        let adminUnlocked = false; 
         let typedKeys = "";
         window.addEventListener('keydown', (e) => {
             if(document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
             typedKeys += e.key.toLowerCase();
             if (typedKeys.includes("admin")) {
                 typedKeys = ""; 
-                let adminPass = prompt("🔑 Code d'accès administrateur requis :");
-                if (adminPass === "IndieGabVR2024") {
+                if(adminUnlocked) {
                     document.getElementById('adminPanelOverlay').style.display = 'flex';
                     loadConnectedUsers();
-                } else if (adminPass !== null) {
-                    showNotification("Accès refusé. ❌");
+                } else {
+                    let adminPass = prompt("🔑 Code d'accès administrateur requis :");
+                    if (adminPass === "IndieGabVR2024") {
+                        adminUnlocked = true;
+                        localStorage.setItem('bot_password', adminPass); // Sauvegarde pour la prochaine fois
+                        document.getElementById('adminBadge').style.display = 'block';
+                        document.getElementById('adminPanelOverlay').style.display = 'flex';
+                        loadConnectedUsers();
+                        showNotification("Mode Admin Activé ! 🛡️");
+                    } else if (adminPass !== null) {
+                        showNotification("Accès refusé. ❌");
+                    }
                 }
             }
         });
 
-        // --- 3. FONCTIONS ADMIN ---
+        const eventSource = new EventSource('/api/stream');
+        eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.message) {
+                const notif = document.getElementById('topRightNotif');
+                notif.innerText = "🔔 " + data.message;
+                notif.style.display = 'block';
+                setTimeout(() => notif.style.display = 'none', 5000);
+            }
+        };
+
         function closeAdminPanel() { document.getElementById('adminPanelOverlay').style.display = 'none'; }
         async function loadConnectedUsers() {
             try {
                 let res = await fetch('/api/admin/users'); let ips = await res.json();
                 const listDiv = document.getElementById('userList'); listDiv.innerHTML = "";
-                if(ips.length === 0) { listDiv.innerHTML = "<p style='color: #b5bac1;'>Aucune IP détectée.</p>"; return; }
+                if(ips.length === 0) { listDiv.innerHTML = "<p style='color: var(--text-muted);'>Aucune IP détectée.</p>"; return; }
                 ips.forEach(ip => {
-                    listDiv.innerHTML += `<div class="ip-item"><span style="font-weight: bold; color: white;">🌐 ${ip}</span><div><button class="btn warning" style="width: auto; padding: 5px 10px; margin: 0 5px;" onclick="kickIP('${ip}')">Kick</button><button class="btn danger" style="width: auto; padding: 5px 10px; margin: 0;" onclick="banIP('${ip}')">BAN IP</button></div></div>`;
+                    listDiv.innerHTML += `<div class="ip-item"><span style="font-weight: bold;">🌐 ${ip}</span><div><button class="btn warning" style="width: auto; padding: 5px 10px; margin: 0 5px;" onclick="kickIP('${ip}')">Kick</button><button class="btn danger" style="width: auto; padding: 5px 10px; margin: 0;" onclick="banIP('${ip}')">BAN IP</button></div></div>`;
                 });
-            } catch (e) { showNotification("Erreur chargement IP"); }
+            } catch (e) {}
         }
-        async function banIP(ip) { if(!confirm(`Bannir définitivement ${ip} ?`)) return; try { let res = await fetch('/api/admin/ban', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip }) }); let data = await res.json(); showNotification(data.message); loadConnectedUsers(); } catch (e) {} }
+        async function banIP(ip) { if(!confirm(`Bannir ${ip} ?`)) return; try { let res = await fetch('/api/admin/ban', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip }) }); let data = await res.json(); showNotification(data.message); loadConnectedUsers(); } catch (e) {} }
         async function kickIP(ip) { try { let res = await fetch('/api/admin/kick', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip }) }); let data = await res.json(); showNotification(data.message); loadConnectedUsers(); } catch (e) {} }
-
-        // --- 4. DASHBOARD CLASSIQUE ---
-        document.getElementById('volumeSlider').addEventListener('input', (e) => { document.getElementById('volumeValue').innerText = e.target.value + '%'; });
-        function showNotification(msg) { const notif = document.getElementById('notification'); notif.innerText = msg; notif.style.display = 'block'; setTimeout(() => notif.style.display = 'none', 4000); }
-        async function action(endpoint) { try { let res = await fetch(endpoint); let data = await res.json(); showNotification(data.message); } catch (e) { showNotification("Erreur ❌"); } }
-
-        // Mettre à jour l'interface selon le style choisi
-        function toggleStyleOptions() {
-            const style = document.getElementById('msgStyle').value;
-            const colorPicker = document.getElementById('colorPickerContainer');
-            const titleInput = document.getElementById('msgTitle');
-
-            if (style === 'texte') {
-                colorPicker.style.display = 'none';
-                titleInput.style.display = 'none'; // Pas de titre pour un texte normal
-            } else if (style === 'embed') {
-                colorPicker.style.display = 'flex';
-                titleInput.style.display = 'block';
-            } else {
-                // Pour alerte et succes
-                colorPicker.style.display = 'none';
-                titleInput.style.display = 'block';
-            }
-        }
 
         async function loadChannels() {
             try {
                 let res = await fetch('/api/channels'); let channels = await res.json();
                 let select = document.getElementById('msgChannel');
-                select.innerHTML = channels.length ? '' : '<option value="">Aucun salon trouvé</option>';
+                select.innerHTML = channels.length ? '<option value="">-- Choisis un salon --</option>' : '<option value="">Aucun salon trouvé</option>';
                 channels.forEach(c => select.innerHTML += `<option value="${c.id}"># ${c.name}</option>`);
             } catch(e) {}
+        }
+
+        async function loadChannelMessages() {
+            const channelId = document.getElementById('msgChannel').value;
+            const viewer = document.getElementById('chatViewer');
+            if(!channelId) { viewer.innerHTML = "<div style='text-align:center; color:var(--text-muted); margin-top:100px;'>Sélectionne un salon...</div>"; return; }
+            
+            viewer.innerHTML = "<div style='text-align:center; margin-top:100px;'>Chargement des messages... 📡</div>";
+            try {
+                let res = await fetch(`/api/messages/${channelId}`);
+                let msgs = await res.json();
+                viewer.innerHTML = "";
+                if(msgs.length === 0) viewer.innerHTML = "<div style='text-align:center; margin-top:100px;'>Aucun message récent.</div>";
+                msgs.forEach(m => {
+                    const tag = m.bot ? '<span class="msg-bot-tag">BOT</span>' : '';
+                    viewer.innerHTML += `
+                        <div class="msg">
+                            <img src="${m.avatar}" alt="Avatar">
+                            <div class="msg-body">
+                                <div class="msg-head">
+                                    <span><span class="msg-author">${m.author}</span> ${tag}</span>
+                                    <span class="msg-time">${m.time}</span>
+                                </div>
+                                <div>${m.content}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                viewer.scrollTop = viewer.scrollHeight; 
+            } catch(e) { viewer.innerHTML = "Erreur de chargement."; }
+        }
+
+        async function loadVoiceMembers() {
+            try {
+                let res = await fetch('/api/voice/members');
+                let members = await res.json();
+                let box = document.getElementById('voiceMembersBox');
+                box.innerHTML = '';
+                if (members.length === 0) { box.innerHTML = '<span style="font-size:12px; color:var(--text-muted);">Personne dans le salon...</span>'; return; }
+                
+                members.forEach(m => {
+                    box.innerHTML += `
+                        <div class="v-member">
+                            <img src="${m.avatar}" alt="Avatar">
+                            ${m.name} ${m.bot ? '🤖' : ''}
+                        </div>
+                    `;
+                });
+            } catch(e) {}
+        }
+
+        async function sendTTS() {
+            const text = document.getElementById('ttsText').value;
+            const lang = document.getElementById('ttsLang').value;
+            if(!text) return showNotification("Écris quelque chose ! ❌");
+            if(text.length > 200) return showNotification("Le texte est trop long (Max: 200) ! ❌");
+            
+            try {
+                let res = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, lang }) });
+                let data = await res.json();
+                showNotification(data.message);
+                document.getElementById('ttsText').value = "";
+            } catch(e) { showNotification("Erreur TTS ❌"); }
+        }
+
+        document.getElementById('volumeSlider').addEventListener('input', (e) => { document.getElementById('volumeValue').innerText = e.target.value + '%'; });
+        function showNotification(msg) { const notif = document.getElementById('notification'); notif.innerText = msg; notif.style.display = 'block'; setTimeout(() => notif.style.display = 'none', 3000); }
+        async function action(endpoint) { try { let res = await fetch(endpoint); let data = await res.json(); showNotification(data.message); setTimeout(loadVoiceMembers, 1500); } catch (e) { showNotification("Erreur ❌"); } }
+
+        function toggleStyleOptions() {
+            const style = document.getElementById('msgStyle').value;
+            const colorPicker = document.getElementById('colorPickerContainer');
+            const titleInput = document.getElementById('msgTitle');
+            if (style === 'texte') { colorPicker.style.display = 'none'; titleInput.style.display = 'none'; } 
+            else if (style === 'embed') { colorPicker.style.display = 'flex'; titleInput.style.display = 'block'; } 
+            else { colorPicker.style.display = 'none'; titleInput.style.display = 'block'; }
         }
 
         async function sendMessage() {
@@ -249,21 +412,15 @@
             const title = document.getElementById('msgTitle').value;
             const desc = document.getElementById('msgDesc').value;
             const color = document.getElementById('msgColor').value;
+            const imageUrl = document.getElementById('msgImage').value; // Prise en compte de l'image
             
-            if(!channelId) return showNotification("Tu dois choisir un salon ! ❌");
-            if(!desc) return showNotification("Texte obligatoire ! ❌");
-            
+            if(!channelId || !desc) return showNotification("Salon et texte obligatoires ! ❌");
             try {
-                let res = await fetch('/api/send-message', { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ channelId, style, title, description: desc, color }) 
-                });
-                let data = await res.json(); 
-                showNotification(data.message);
-                
-                // Ne vide que le texte pour pouvoir renvoyer vite si besoin
+                let res = await fetch('/api/send-message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channelId, style, title, description: desc, color, imageUrl }) });
+                let data = await res.json(); showNotification(data.message); 
                 document.getElementById('msgDesc').value = "";
+                document.getElementById('msgImage').value = ""; // Vide la case image aussi
+                setTimeout(loadChannelMessages, 1000); 
             } catch (e) { showNotification("Erreur ❌"); }
         }
 
@@ -272,7 +429,10 @@
         async function playSound() { const soundName = document.getElementById('soundList').value; const volume = document.getElementById('volumeSlider').value; if(!soundName) return showNotification("Aucune piste ! ❌"); let res = await fetch('/api/play-sound', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ soundName, volume }) }); let data = await res.json(); showNotification(data.message); }
         async function fetchStats() { try { let res = await fetch('/api/stats'); let stats = await res.json(); document.getElementById('stat-ping').innerText = stats.ping + " ms"; document.getElementById('stat-members').innerText = stats.members; } catch(e) {} }
 
-        function initApp() { loadSounds(); loadChannels(); fetchStats(); setInterval(fetchStats, 5000); }
+        function initApp() { 
+            loadSounds(); loadChannels(); fetchStats(); loadVoiceMembers();
+            setInterval(fetchStats, 5000); setInterval(loadVoiceMembers, 5000); 
+        }
     </script>
 </body>
 </html>
