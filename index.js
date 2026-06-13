@@ -1,5 +1,5 @@
 const { Client, GatewayIntentBits, Events, REST, Routes, EmbedBuilder } = require('discord.js');
-const { joinVoiceChannel, getVoiceConnection, createAudioPlayer, createAudioResource, NoSubscriberBehavior } = require('@discordjs/voice');
+const { joinVoiceChannel, getVoiceConnection, createAudioPlayer, createAudioResource, NoSubscriberBehavior, VoiceConnectionStatus, entersState } = require('@discordjs/voice');
 const express = require('express');
 const path = require('path');
 const multer = require('multer');
@@ -23,6 +23,48 @@ let audioPlayer = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBeh
 // ==========================================
 const bannedIPs = new Set();
 const activeUsers = new Map();
+
+// ==========================================
+// 🎧 MOTEUR VOCAL & ANTI-KICK H24
+// ==========================================
+async function rejoindreVocal() {
+    try {
+        const guild = await client.guilds.fetch(GUILD_ID);
+        const channel = await client.channels.fetch(VOICE_CHANNEL_ID);
+        
+        if (!channel) return console.log("❌ Salon vocal introuvable.");
+
+        const connection = joinVoiceChannel({
+            channelId: channel.id,
+            guildId: guild.id,
+            adapterCreator: guild.voiceAdapterCreator,
+            selfDeaf: false,
+            selfMute: false
+        });
+
+        // 🛡️ DÉTECTEUR DE KICK / DÉCONNEXION
+        connection.on(VoiceConnectionStatus.Disconnected, async () => {
+            console.log("⚠️ Le bot a été déconnecté ou kické !");
+            try {
+                // On attend 5s pour vérifier si c'est juste un petit bug réseau
+                await Promise.race([
+                    entersState(connection, VoiceConnectionStatus.Signalling, 5000),
+                    entersState(connection, VoiceConnectionStatus.Connecting, 5000),
+                ]);
+            } catch (error) {
+                // Si ça échoue, c'est un KICK. On force la reconnexion !
+                console.log("🔄 Retour forcé dans le salon vocal en cours...");
+                connection.destroy(); 
+                setTimeout(rejoindreVocal, 2000); 
+            }
+        });
+
+        console.log("🎧 Installé dans le vocal (Protection Anti-Kick activée) !");
+    } catch(e) {
+        console.error("Erreur vocale. Nouvel essai dans 10 secondes...");
+        setTimeout(rejoindreVocal, 10000);
+    }
+}
 
 // ==========================================
 // 🎭 BASE DE DONNÉES FUN
@@ -60,6 +102,9 @@ const slashCommands = [
 client.once(Events.ClientReady, async () => {
     console.log(`🚀 Connecté en tant que ${client.user.tag}!`);
     try { await client.application.commands.set(slashCommands, GUILD_ID); } catch (e) { console.error(e); }
+    
+    // Le bot rejoint le vocal automatiquement au démarrage
+    rejoindreVocal();
 });
 
 client.on(Events.InteractionCreate, async interaction => {
@@ -109,8 +154,7 @@ client.on(Events.InteractionCreate, async interaction => {
 const reponsesAuto = {
     "salut": "Salut à toi !", "bonjour": "Bonjour !", "ping": "Pong ! 🏓", "bot": "Tu parles de moi ? Je suis là !",
     "mdr": "Haha 😂", "lol": "Je rigole intérieurement.", "ptdr": "🤣", "quoi": "Feur ! 💇‍♂️", "hein": "Deux ! ✌️",
-    "shane": "Respecter le goat, enfin pas trop non plus",
-    "skaly": " c'est un petit femboy ecoute "
+    "shane": "Respecter le goat, enfin pas trop non plus"
 };
 
 client.on(Events.MessageCreate, async message => {
@@ -190,17 +234,23 @@ app.get('/api/sound/pause', (req, res) => { audioPlayer.pause(); res.json({messa
 app.get('/api/sound/resume', (req, res) => { audioPlayer.unpause(); res.json({message: "Reprise ▶️"}); });
 app.get('/api/sound/stop', (req, res) => { audioPlayer.stop(); res.json({message: "Stop ⏹️"}); });
 
-app.get('/api/voice/join', async (req, res) => {
-    try {
-        const channel = await client.channels.fetch(VOICE_CHANNEL_ID);
-        joinVoiceChannel({ channelId: channel.id, guildId: channel.guild.id, adapterCreator: channel.guild.voiceAdapterCreator, selfDeaf: false, selfMute: false });
-        res.json({ message: "Vocal rejoint ! 🎧" });
-    } catch(e) { res.status(500).json({ message: "Erreur de connexion vocale." }); }
+// --- CONTRÔLE VOCAL ADAPTÉ ---
+app.get('/api/voice/join', (req, res) => {
+    rejoindreVocal(); 
+    res.json({ message: "Ordre de connexion envoyé ! 🎧" });
 });
+
 app.get('/api/voice/leave', (req, res) => {
     const connection = getVoiceConnection(GUILD_ID);
-    if (connection) { connection.destroy(); res.json({ message: "Vocal quitté ! 👋" }); } else { res.json({ message: "Pas dans le vocal." }); }
+    if (connection) {
+        connection.removeAllListeners(); // IMPORTANT: Empêche l'anti-kick de se déclencher
+        connection.destroy(); 
+        res.json({ message: "Vocal quitté volontairement ! 👋" }); 
+    } else { 
+        res.json({ message: "Pas dans le vocal." }); 
+    }
 });
+
 app.get('/api/voice/mute', (req, res) => {
     const connection = getVoiceConnection(GUILD_ID);
     if(connection) { connection.joinConfig.selfMute = true; connection.rejoin(); res.json({ message: "Bot Muet 🤫" }); } else res.json({ message: "Pas dans le vocal !" });
@@ -214,7 +264,6 @@ app.get('/api/auto/toggle', (req, res) => {
     res.json({ message: `Réponses auto : ${autoResponsesEnabled ? "ACTIVÉES ✅" : "DÉSACTIVÉES ❌"}` });
 });
 
-// --- NOUVEAU : SYSTÈME MULTI-STYLES DE MESSAGES ---
 app.post('/api/send-message', async (req, res) => {
     const { channelId, style, title, description, color } = req.body;
     try {
