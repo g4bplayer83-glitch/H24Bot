@@ -117,7 +117,7 @@ client.on(Events.InteractionCreate, async interaction => {
     } catch (err) {}
 });
 
-const reponsesAuto = { "salut": "Salut à toi !", "bonjour": "Bonjour !", "ping": "Pong ! 🏓", "quoi": "Feur ! 💇‍♂️", "hein": "Deux ! ✌️" };
+const reponsesAuto = { "salut": "Salut à toi !", "shane": "Le goat du serveur ? non pas du tout, tu rêve toi", "skaly": "Skaly le gros femboy possible, AHAHAHAH", "Ta gueule": "Merci à toi aussi conanrd", "gay": "toi même pd", "rayan": "VS Rayan Realerted voila https://gamebanana.com/mods/682867", "bonjour": "Bonjour !", "ping": "Pong ! 🏓", "quoi": "Feur ! 💇‍♂️", "hein": "Deux ! ✌️" };
 
 client.on(Events.MessageCreate, async message => {
     if (message.author.bot || !autoResponsesEnabled) return; 
